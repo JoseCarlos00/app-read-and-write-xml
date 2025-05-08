@@ -8,7 +8,6 @@ import { Button, Flex, Radio, Divider } from 'antd';
 import { useState } from 'react';
 
 const Tools = () => {
-  // Estado para controlar la vista seleccionada. 'xml' es la vista por defecto.
   const [selectedView, setSelectedView] = useState('xml');
 
   const handleViewChange = (e) => {
@@ -35,12 +34,16 @@ const Tools = () => {
             <Radio.Button value="summary" title="Vista Resumen">
               <FundProjectionScreenOutlined />
             </Radio.Button>
+
             <Radio.Button value="xml" title="Vista XML">
               <ApartmentOutlined />
             </Radio.Button>
           </Radio.Group>
 
-          <Divider type="vertical" />
+          <Divider
+            type="vertical"
+            style={{ height: '20px', marginTop: '2px' }}
+          />
 
           <Button
             type="text"
@@ -50,7 +53,10 @@ const Tools = () => {
             onClick={() => console.log('Buscar clicked')}
           />
 
-          <Divider type="vertical" />
+          <Divider
+            type="vertical"
+            style={{ height: '20px', marginTop: '2px' }}
+          />
 
           <Button
             type="text"
@@ -63,12 +69,6 @@ const Tools = () => {
       </Flex>
     </>
   );
-};
-
-const style = {
-  defaultView: {
-    backgroundColor: '#0078d4',
-  },
 };
 
 export default Tools;
