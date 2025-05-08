@@ -13,10 +13,11 @@
   "cSpell.words": [
     "Envia",
     "precarga",
-    "renderizado",
-    "shxmlp",
-    "shxml",
     "rcxml",
-    "recxmlp"
+    "recxmlp",
+    "renderizado",
+    "shxml",
+    "shxmlp",
+    "togglefullscreen"
   ]
 }

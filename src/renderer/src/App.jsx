@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import Versions from './components/Versions';
 import Test from './components/TestDesign';
 
@@ -66,6 +66,11 @@ function App() {
       displayFileContent(activeTab); // Muestra el contenido del primer archivo o del archivo seleccionado
     }
   };
+
+  useEffect(() => {
+    // Escuchar el evento desde el menú para abrir el archivo
+    window.ipcRenderer.openFileEvent(handleOpenFile);
+  }, []);
 
   return (
     <>
