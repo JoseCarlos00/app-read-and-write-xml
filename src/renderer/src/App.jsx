@@ -1,5 +1,5 @@
-import TabsManager from './assets/view/TabsManager';
-import Tools from './assets/view/Tools';
+import TabsManager from './view/TabsManager';
+import Tools from './view/Tools';
 
 function App() {
   return (
