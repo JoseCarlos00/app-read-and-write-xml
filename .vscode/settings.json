@@ -19,5 +19,6 @@
     "shxml",
     "shxmlp",
     "togglefullscreen"
-  ]
+  ],
+  "prettier.endOfLine": "lf"
 }

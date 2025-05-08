@@ -20,6 +20,7 @@ const TabsManager = () => {
   const onChange = (newActiveKey) => {
     setActiveKey(newActiveKey);
   };
+
   const add = () => {
     const newActiveKey = `newTab${newTabIndex.current++}`;
     const newPanes = [...items];
@@ -31,6 +32,7 @@ const TabsManager = () => {
     setItems(newPanes);
     setActiveKey(newActiveKey);
   };
+
   const remove = (targetKey) => {
     let newActiveKey = activeKey;
     let lastIndex = -1;
@@ -50,6 +52,7 @@ const TabsManager = () => {
     setItems(newPanes);
     setActiveKey(newActiveKey);
   };
+
   const onEdit = (targetKey, action) => {
     if (action === 'add') {
       add();
