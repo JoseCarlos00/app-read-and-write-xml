@@ -1,0 +1,22 @@
+{
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "files.autoSave": "off",
+  "editor.formatOnSave": true,
+  "cSpell.words": [
+    "Envia",
+    "precarga",
+    "renderizado",
+    "shxmlp",
+    "shxml",
+    "rcxml",
+    "recxmlp"
+  ]
+}
