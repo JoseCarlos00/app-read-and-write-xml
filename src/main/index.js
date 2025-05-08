@@ -1,9 +1,12 @@
-import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron';
+import { app, shell, BrowserWindow, Menu, ipcMain, dialog } from 'electron';
 import { join } from 'path';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
 import icon from '../../resources/icon.png?asset';
 
 import fs from 'node:fs/promises';
+
+const isDev = process.env.NODE_ENV !== 'production';
+const isMac = process.platform === 'darwin';
 
 let mainWindow;
 
@@ -13,7 +16,7 @@ function createWindow() {
     width: 900,
     height: 670,
     show: false,
-    autoHideMenuBar: true,
+    // autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       nodeIntegration: false,
@@ -30,6 +33,12 @@ function createWindow() {
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url);
     return { action: 'deny' };
+  });
+
+  Menu.setApplicationMenu(mainMenu);
+
+  mainWindow.webContents.on('context-menu', () => {
+    contextTemplate.popup(mainMenu.webContents);
   });
 
   // HMR for renderer base on electron-vite cli.
@@ -108,3 +117,85 @@ ipcMain.on('save-file', (event, { filePath, content }) => {
     }); // Envia error
   }
 });
+
+// Crear el menú de la aplicación
+const mainMenu = Menu.buildFromTemplate([
+  {
+    label: 'Archivo',
+    submenu: [
+      {
+        label: 'Abrir archivo',
+        accelerator: 'CmdOrCtrl+O',
+        click: () => {
+          mainWindow.webContents.send('menu-open-file');
+        },
+      },
+      {
+        label: 'Guardar archivo',
+        accelerator: 'CmdOrCtrl+S',
+        click: () => {
+          mainWindow.webContents.send('menu-save-file');
+        },
+      },
+      {
+        label: 'Guardar Archivo Como',
+        accelerator: 'CmdOrCtrl+Shift+S',
+        click: () => {
+          mainWindow.webContents.send('menu-save-file-as');
+        },
+      },
+      { type: 'separator' },
+      isMac ? { role: 'close' } : { role: 'quit' },
+    ],
+  },
+  // { role: 'viewMenu' }
+  isDev
+    ? {
+        label: 'View',
+        submenu: [
+          { role: 'reload' },
+          { role: 'forceReload' },
+          { role: 'toggleDevTools' },
+          { type: 'separator' },
+          { role: 'resetZoom' },
+          { role: 'zoomIn' },
+          { role: 'zoomOut' },
+          { type: 'separator' },
+          { role: 'togglefullscreen' },
+        ],
+      }
+    : '',
+]);
+
+const contextTemplate = Menu.buildFromTemplate([
+  {
+    label: 'Abrir archivo',
+    accelerator: 'CmdOrCtrl+O',
+    click: () => {
+      mainWindow.webContents.send('menu-open-file');
+    },
+  },
+  {
+    label: 'Guardar archivo',
+    accelerator: 'CmdOrCtrl+S',
+    click: () => {
+      mainWindow.webContents.send('menu-save-file');
+    },
+  },
+  {
+    label: 'Guardar Archivo Como',
+    accelerator: 'CmdOrCtrl+Shift+S',
+    click: () => {
+      mainWindow.webContents.send('menu-save-file-as');
+    },
+  },
+  {
+    type: 'separator',
+  },
+  {
+    role: 'close',
+  },
+  {
+    role: 'reload',
+  },
+]);
