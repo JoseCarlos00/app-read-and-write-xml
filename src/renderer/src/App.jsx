@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import Versions from './components/Versions';
+import Test from './components/TestDesign';
 
 let activeTab = null;
 let files = []; // Array para almacenar los archivos abiertos
@@ -68,6 +69,7 @@ function App() {
 
   return (
     <>
+      <Test />
       <header>
         <h1>Editor de XML</h1>
       </header>
