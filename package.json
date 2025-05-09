@@ -22,7 +22,8 @@
     "@electron-toolkit/utils": "^4.0.0",
     "@monaco-editor/react": "^4.7.0",
     "antd": "^5.25.0",
-    "electron-updater": "^6.3.9"
+    "electron-updater": "^6.3.9",
+    "zustand": "^5.0.4"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config": "^2.0.0",
