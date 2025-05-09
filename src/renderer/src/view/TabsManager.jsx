@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Tabs } from 'antd';
 
 import './TabsManager.css';
-import EditorComponent from './Editor';
+import ContentTab from './ContentTab';
 
 const contentFile = `<Shipment>
   <Action>Save</Action>
@@ -101,17 +101,17 @@ const contentFile = `<Shipment>
 const initialItems = [
   {
     label: 'Tab 1',
-    children: <EditorComponent content={contentFile} />,
+    children: <ContentTab content={contentFile} />,
     key: '1',
   },
   {
     label: 'Tab 2',
-    children: <EditorComponent content={contentFile} />,
+    children: <ContentTab content={contentFile} />,
     key: '2',
   },
   {
     label: 'Tab 3',
-    children: <EditorComponent content={contentFile} />,
+    children: <ContentTab content={contentFile} />,
     key: '3',
   },
 ];
