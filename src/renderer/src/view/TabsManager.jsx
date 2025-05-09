@@ -101,17 +101,17 @@ const contentFile = `<Shipment>
 const initialItems = [
   {
     label: 'Tab 1',
-    children: <ContentTab content={contentFile} />,
+    children: <ContentTab content={contentFile} tabKey={'1'} />,
     key: '1',
   },
   {
     label: 'Tab 2',
-    children: <ContentTab content={contentFile} />,
+    children: <ContentTab content={contentFile} tabKey={'2'} />,
     key: '2',
   },
   {
     label: 'Tab 3',
-    children: <ContentTab content={contentFile} />,
+    children: <ContentTab content={contentFile} tabKey={'3'} />,
     key: '3',
   },
 ];
