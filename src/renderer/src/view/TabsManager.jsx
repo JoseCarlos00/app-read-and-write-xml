@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Tabs } from 'antd';
 
 import './TabsManager.css';
-import EditorComponent from '../components/Editor';
+import EditorComponent from './Editor';
 
 const contentFile = `<Shipment>
   <Action>Save</Action>
