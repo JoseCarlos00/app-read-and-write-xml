@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
 const useViewStore = create((set) => ({
-  editorView: 'tree',
+  editorView: 'summary',
   setEditorView: (view) => set({ editorView: view }),
 }));
 

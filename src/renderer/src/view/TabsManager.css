@@ -21,6 +21,10 @@
     position: absolute;
     width: 100%;
   }
+
+  .ant-tabs-tabpane {
+    min-height: 100vh;
+  }
 }
 
 .custom-tabs-manager
