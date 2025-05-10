@@ -1,7 +1,7 @@
 import TableComponent from './Table';
 
 function ViewSummary({ content }) {
-  console.log('typeof content:', typeof content, { content });
+  console.log('ViewSummary', { content });
 
   return (
     <div style={style.container}>

@@ -185,7 +185,7 @@ const TableComponent2 = () => {
   return (
     <Flex gap="middle" vertical>
       <Flex align="center" gap="middle">
-        <Button type="primary" disabled="true">
+        <Button type="primary" disabled={true}>
           Eliminar
         </Button>
         {hasSelected ? `Selected ${selectedRowKeys.length} items` : null}

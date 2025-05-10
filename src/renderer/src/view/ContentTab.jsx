@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
 import EditorComponent from '../components/ViewEditor';
 import ViewSummary from '../components/ViewSummary';
@@ -8,23 +8,29 @@ const { parseXML } = window.xml2jsAPI;
 
 function ContentTab({ content: contentString, tabKey }) {
   const editorView = useViewStore((state) => state.editorView);
-  const [contentObject, setContentObject] = useState(null);
+  const [parsedContentObject, setParsedContentObject] = useState(null);
 
   useEffect(() => {
-    if (editorView === 'summary' && contentString) {
+    if (contentString) {
       const { data, error } = parseXML(contentString);
+
+      console.log('Parsed XML:', data, 'Error:', error);
 
       if (error) {
         console.error('Error parsing XML:');
-        setContentObject(null);
+        setParsedContentObject(null);
         return;
       }
 
-      setContentObject(data);
+      setParsedContentObject(data);
     } else {
-      setContentObject(null);
+      setParsedContentObject(null);
     }
-  }, [editorView, contentString]);
+  }, [contentString]);
+
+  const contentObject = useMemo(() => {
+    return parsedContentObject;
+  }, [parsedContentObject]);
 
   return (
     <>

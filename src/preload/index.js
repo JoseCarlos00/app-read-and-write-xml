@@ -5,16 +5,18 @@ import { parseString } from 'xml2js';
 // Custom APIs for renderer
 const customParseXmlAPI = {
   parseXML: (xml) => {
-    return parseString(xml, (err, result) => {
-      console.log('Parser:', { err, result });
+    let parser = null;
 
+    parseString(xml, (err, result) => {
       if (!err) {
-        return { status: 'success', data: result };
+        parser = { status: 'success', data: result };
       } else {
         console.error('Error parsing XML:', err);
-        return { error: true };
+        parser = { error: true };
       }
     });
+
+    return parser;
   },
 };
 
