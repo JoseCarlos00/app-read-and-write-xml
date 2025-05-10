@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import Versions from './Versions';
 import Test from './TestDesign';
 
@@ -36,7 +36,7 @@ function Preliminar() {
     }
   };
 
-  const createTab = (filePath) => {
+  const createTab = useCallback((filePath) => {
     const tab = document.createElement('div');
     tab.classList.add('tab');
     tab.textContent = filePath.split('\\').pop(); // Muestra solo el nombre del archivo
@@ -48,9 +48,9 @@ function Preliminar() {
     });
     fileTabs.current.appendChild(tab);
     updateActiveTab();
-  };
+  }, []);
 
-  const handleOpenFile = async () => {
+  const handleOpenFile = useCallback(async () => {
     const newFiles = await window.electronAPI.openFile(); // Usa la API expuesta
     console.log('newFiles:', newFiles);
 
@@ -65,12 +65,12 @@ function Preliminar() {
       });
       displayFileContent(activeTab); // Muestra el contenido del primer archivo o del archivo seleccionado
     }
-  };
+  }, [createTab]);
 
   useEffect(() => {
     // Escuchar el evento desde el menú para abrir el archivo
     window.ipcRenderer.openFileEvent(handleOpenFile);
-  }, []);
+  }, [handleOpenFile]);
 
   return (
     <>
