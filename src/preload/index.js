@@ -1,8 +1,22 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import { electronAPI } from '@electron-toolkit/preload';
+import { parseString } from 'xml2js';
 
 // Custom APIs for renderer
-const api = {};
+const customParseXmlAPI = {
+  parseXML: (xml) => {
+    return parseString(xml, (err, result) => {
+      console.log('Parser:', { err, result });
+
+      if (!err) {
+        return { status: 'success', data: result };
+      } else {
+        console.error('Error parsing XML:', err);
+        return { error: true };
+      }
+    });
+  },
+};
 
 // Use `contextBridge` APIs to expose Electron APIs to
 // renderer only if context isolation is enabled, otherwise
@@ -10,7 +24,7 @@ const api = {};
 if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('electron', electronAPI);
-    contextBridge.exposeInMainWorld('api', api);
+    contextBridge.exposeInMainWorld('xml2jsAPI', customParseXmlAPI);
 
     contextBridge.exposeInMainWorld('electronAPI', {
       openFile: () => ipcRenderer.invoke('open-file'),
@@ -32,5 +46,5 @@ if (process.contextIsolated) {
   }
 } else {
   window.electron = electronAPI;
-  window.api = api;
+  window.xml2jsAPI = customParseXmlAPI;
 }

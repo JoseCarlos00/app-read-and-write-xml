@@ -23,6 +23,7 @@
     "@monaco-editor/react": "^4.7.0",
     "antd": "^5.25.0",
     "electron-updater": "^6.3.9",
+    "xml2js": "^0.6.2",
     "zustand": "^5.0.4"
   },
   "devDependencies": {
