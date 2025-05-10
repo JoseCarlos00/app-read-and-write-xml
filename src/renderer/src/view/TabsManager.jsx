@@ -130,7 +130,12 @@ const TabsManager = () => {
     const newPanes = [...items]; // Create a new array instance
     newPanes.push({
       label: 'New Tab',
-      children: 'Content of new Tab',
+      children: (
+        <ContentTab
+          content={'<Hello>Content of new Tab</Hello>'}
+          tabKey={newActiveKey}
+        />
+      ),
       key: newActiveKey,
     });
     setItems(newPanes);
@@ -184,9 +189,10 @@ const TabsManager = () => {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Ctrl+Shift+W or Ctrl+Shift+w to close current tab
-      if (e.ctrlKey && e.shiftKey && (e.key === 'W' || e.key === 'w')) {
+      // Ctrl+W or Ctrl+w to close current tab
+      if (e.ctrlKey && (e.key === 'W' || e.key === 'w')) {
         e.preventDefault();
+
         if (activeKey && items.find((item) => item.key === activeKey)) {
           // Ensure there's an active tab to remove
           remove(activeKey);

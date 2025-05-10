@@ -5,16 +5,14 @@ import {
   SearchOutlined,
 } from '@ant-design/icons';
 import { Button, Flex, Radio, Divider } from 'antd';
-import { useState } from 'react';
+import useViewStore from '../store/viewStore';
 
 const Tools = () => {
-  const [selectedView, setSelectedView] = useState('xml');
+  const selectedView = useViewStore((state) => state.editorView);
+  const setEditorView = useViewStore((state) => state.setEditorView);
 
   const handleViewChange = (e) => {
-    setSelectedView(e.target.value);
-    // Aquí puedes agregar lógica adicional cuando cambie la vista,
-    // por ejemplo, llamar a una función para actualizar el contenido principal.
-    console.log('Vista seleccionada:', e.target.value);
+    setEditorView(e.target.value);
   };
 
   return (
@@ -35,7 +33,7 @@ const Tools = () => {
               <FundProjectionScreenOutlined />
             </Radio.Button>
 
-            <Radio.Button value="xml" title="Vista XML">
+            <Radio.Button value="tree" title="Vista XML">
               <ApartmentOutlined />
             </Radio.Button>
           </Radio.Group>
