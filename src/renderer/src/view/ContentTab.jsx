@@ -1,15 +1,18 @@
 import EditorComponent from '../components/ViewEditor';
+import ViewSummary from '../components/ViewSummary';
 import useViewStore from '../store/viewStore';
 
 function ContentTab({ content, tabKey }) {
   const editorView = useViewStore((state) => state.editorView);
 
-  console.log({ editorView });
-
   return (
     <>
-      {editorView === 'tree' && <EditorComponent content={content} />}
-      {editorView === 'summary' && <div> Resumen </div>}
+      {editorView === 'tree' && (
+        <EditorComponent content={content} tabKey={tabKey} />
+      )}
+      {editorView === 'summary' && (
+        <ViewSummary content={content} tabKey={tabKey} />
+      )}
     </>
   );
 }
