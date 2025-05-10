@@ -21,5 +21,6 @@
     "shxmlp",
     "togglefullscreen"
   ],
-  "prettier.endOfLine": "lf"
+  "prettier.endOfLine": "lf",
+  "editor.unfoldOnClickAfterEndOfLine": true
 }
