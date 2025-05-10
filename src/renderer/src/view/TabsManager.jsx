@@ -3,116 +3,15 @@ import { Tabs } from 'antd';
 
 import './TabsManager.css';
 import ContentTab from './ContentTab';
+import { data } from '../mock/mock';
 
-const contentFile = `<Shipment>
-  <Action>Save</Action>
-  <UserDef6>CAMIONETA FM</UserDef6>
-  <UserDef8>360</UserDef8>
-  <AllocateComplete>N</AllocateComplete>
-  <Comments>
-    <Comment>
-      <CommentType>Comentario1</CommentType>
-      <Text>ATN. VIRIDIANA ORTEGA TAVARES</Text>
-    </Comment>
-    <Comment>
-      <CommentType>Comentario3</CommentType>
-      <Text>CL:MUNECAS GELI</Text>
-    </Comment>
-  </Comments>
-  <ConsolidationAllowed>Y</ConsolidationAllowed>
-  <Customer>
-    <Carrier>Camioneta FM</Carrier>
-    <CarrierService>Camioneta FM</CarrierService>
-    <Company>FM</Company>
-    <CustomerAddress>
-      <Name>Mex-Valle</Name>
-    </CustomerAddress>
-    <Customer>Mex-Valle</Customer>
-    <CustomerCategories>
-      <Category1>CLIMX</Category1>
-      <Category10>101</Category10>
-      <Category2>STG DEL VALLE</Category2>
-      <Category8>Y</Category8>
-    </CustomerCategories>
-    <ShipTo>MUÑECAS GELI</ShipTo>
-    <ShipToAddress>
-      <Address1>Felix Cuevas #112</Address1>
-      <Address2>Del Valle</Address2>
-      <Address3>Benito Juarez</Address3>
-      <City>Mexico</City>
-      <Country>MX</Country>
-      <Name>VIRIDIANA ORTEGA TAVARES</Name>
-      <PostalCode>03200</PostalCode>
-      <State>CDMX</State>
-    </ShipToAddress>
-  </Customer>
-  <CustomerPO>51800</CustomerPO>
-  <ErpOrder>360-C-222-51800</ErpOrder>
-  <OrderDate>2025-04-24T20:23:49</OrderDate>
-  <OrderType>CLIMX</OrderType>
-  <Priority>222</Priority>
-  <ShipmentId>360-C-222-51800</ShipmentId>
-  <UserDef13>--</UserDef13>
-  <Warehouse>Mariano</Warehouse>
-  <Details>
-    <ShipmentDetail>
-      <Action>Save</Action>
-      <ErpOrder>360-51800</ErpOrder>
-      <ErpOrderLineNum>2334828</ErpOrderLineNum>
-      <RequestedQty>10</RequestedQty>
-      <SKU>
-        <Company>FM</Company>
-        <Item>3006-560-114</Item>
-        <Quantity>10</Quantity>
-        <QuantityUm>PZ</QuantityUm>
-      </SKU>
-      <TotalQuantity>10</TotalQuantity>
-    </ShipmentDetail>
-    <ShipmentDetail>
-      <Action>Save</Action>
-      <ErpOrder>360-51800</ErpOrder>
-      <ErpOrderLineNum>2334829</ErpOrderLineNum>
-      <RequestedQty>63</RequestedQty>
-      <SKU>
-        <Company>FM</Company>
-        <Item>6222-7223-13737</Item>
-        <Quantity>63</Quantity>
-        <QuantityUm>PZ</QuantityUm>
-      </SKU>
-      <TotalQuantity>63</TotalQuantity>
-    </ShipmentDetail>
-    <ShipmentDetail>
-      <Action>Save</Action>
-      <ErpOrder>360-51800</ErpOrder>
-      <ErpOrderLineNum>2334830</ErpOrderLineNum>
-      <RequestedQty>12</RequestedQty>
-      <SKU>
-        <Company>FM</Company>
-        <Item>7265-4489-13664</Item>
-        <Quantity>12</Quantity>
-        <QuantityUm>PZ</QuantityUm>
-      </SKU>
-      <TotalQuantity>12</TotalQuantity>
-    </ShipmentDetail>
-  </Details>
-</Shipment>
-`;
+const contentFile = data;
 
 const initialItems = [
   {
     label: 'Tab 1',
     children: <ContentTab content={contentFile} tabKey={'1'} />,
     key: '1',
-  },
-  {
-    label: 'Tab 2',
-    children: <ContentTab content={contentFile} tabKey={'2'} />,
-    key: '2',
-  },
-  {
-    label: 'Tab 3',
-    children: <ContentTab content={contentFile} tabKey={'3'} />,
-    key: '3',
   },
 ];
 
