@@ -1,4 +1,4 @@
-import EditorComponent from './Editor';
+import EditorComponent from '../components/ViewEditor';
 import useViewStore from '../store/viewStore';
 
 function ContentTab({ content, tabKey }) {
