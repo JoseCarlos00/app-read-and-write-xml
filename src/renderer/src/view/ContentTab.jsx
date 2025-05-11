@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 
 import EditorComponent from '../components/ViewEditor';
 import ViewSummary from '../components/ViewSummary';
-import { useViewStore } from '../store/viewStore';
+import { useModifiedStore, useViewStore } from '../store/viewStore';
 
 let counter = 0;
 
@@ -13,11 +13,11 @@ function ContentTab({ content: initialContentString, tabKey }) {
   const [currentXmlString, setCurrentXmlString] =
     useState(initialContentString);
   const [parsedContentObject, setParsedContentObject] = useState(null);
-  const [isEditorContentModified, setIsEditorContentModified] = useState(false);
+  const setFilesModified = useModifiedStore((state) => state.setFilesModified);
+  const setTabState = useModifiedStore((state) => state.setTabState);
 
   useEffect(() => {
     setCurrentXmlString(initialContentString);
-    setIsEditorContentModified(false);
   }, [initialContentString]);
 
   // Effect to parse XML whenever currentXmlString changes
@@ -46,12 +46,13 @@ function ContentTab({ content: initialContentString, tabKey }) {
   // Callback for EditorComponent to update content and modification status
   const handleEditorContentChange = useCallback((newContent) => {
     setCurrentXmlString(newContent);
-    setIsEditorContentModified(true);
     console.log('Editor content changed:', ++counter);
   }, []);
 
   const handleModified = (isModified) => {
-    setIsEditorContentModified(isModified);
+    setFilesModified(true);
+    console.log({ tabKey });
+    setTabState(tabKey, { isModified, content: '' });
   };
 
   return (
@@ -60,7 +61,7 @@ function ContentTab({ content: initialContentString, tabKey }) {
         <EditorComponent
           content={currentXmlString}
           onContentChange={handleEditorContentChange}
-          setIsModified={setIsEditorContentModified}
+          setIsModified={handleModified}
           tabKey={tabKey}
         />
       )}

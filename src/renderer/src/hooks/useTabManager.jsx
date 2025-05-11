@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { EditFilled, CloseOutlined } from '@ant-design/icons';
+
 import ContentTab from '../view/ContentTab';
 
 import { data } from '../mock/mock';
+import { useModifiedStore } from '../store/viewStore';
 
 const contentFile = data;
 
@@ -17,6 +20,9 @@ function useTabManager() {
   const [items, setItems] = useState(initialItems);
   const [activeKey, setActiveKey] = useState(initialItems[0].key);
   const newTabIndex = useRef(0);
+  const modifiedTabs = useModifiedStore((state) => state.tabStates);
+
+  console.log('[useTabManager]');
 
   const onChange = (key) => {
     setActiveKey(key);
@@ -45,7 +51,7 @@ function useTabManager() {
     });
     setItems(newPanes);
     setActiveKey(newActiveKey);
-  }, [items, setItems, setActiveKey]); // newTabIndex es una ref, su mutación .current no necesita ser una dep para la identidad useCallback
+  }, [items, setItems, setActiveKey]);
 
   const remove = useCallback(
     (targetKey) => {
@@ -77,6 +83,7 @@ function useTabManager() {
     [activeKey, items, setItems, setActiveKey],
   );
 
+  // Eventos de teclado para los Tabs
   useEffect(() => {
     const handleKeyDown = (e) => {
       // Ctrl+W or Ctrl+w to close current tab
@@ -117,7 +124,16 @@ function useTabManager() {
     };
   }, [activeKey, items, remove, setActiveKey]);
 
-  return { activeKey, items, onChange, onEdit };
+  const itemsWithIcons = items.map((item) => ({
+    ...item,
+    closeIcon: modifiedTabs[item.key] ? (
+      <EditFilled style={{ color: '#fff' }} />
+    ) : (
+      <CloseOutlined />
+    ),
+  }));
+
+  return { activeKey, items: itemsWithIcons, onChange, onEdit };
 }
 
 export default useTabManager;
