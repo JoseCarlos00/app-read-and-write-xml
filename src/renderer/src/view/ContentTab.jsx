@@ -50,6 +50,10 @@ function ContentTab({ content: initialContentString, tabKey }) {
     console.log('Editor content changed:', ++counter);
   }, []);
 
+  const handleModified = (isModified) => {
+    setIsEditorContentModified(isModified);
+  };
+
   return (
     <>
       {editorView === 'tree' && (
@@ -64,7 +68,7 @@ function ContentTab({ content: initialContentString, tabKey }) {
         <ViewSummary
           content={parsedContentObject}
           onContentChange={handleEditorContentChange}
-          setIsModified={setIsEditorContentModified}
+          setIsModified={handleModified}
           tabKey={tabKey}
         />
       )}
