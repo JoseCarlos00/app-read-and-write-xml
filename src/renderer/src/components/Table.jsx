@@ -82,7 +82,7 @@ const EditableCell = (_a) => {
   if (editable) {
     childNode = editing ? (
       <Form.Item
-        style={{ margin: 0 }}
+        className="form-editable-cell"
         name={dataIndex}
         rules={[{ required: true, message: `${title} es requerido.` }]}
       >
@@ -213,7 +213,7 @@ const TableComponent2 = () => {
   const hasSelected = selectedRowKeys.length > 0;
 
   return (
-    <Flex gap="middle" vertical>
+    <Flex gap="middle" vertical className="container-principal">
       <Flex align="center" gap="middle">
         <Button type="primary" disabled={true}>
           Eliminar
@@ -228,6 +228,7 @@ const TableComponent2 = () => {
         columns={columns}
         size="small"
         rowSelection={rowSelection}
+        pagination={false}
       />
     </Flex>
   );
