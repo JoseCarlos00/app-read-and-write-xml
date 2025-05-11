@@ -5,27 +5,44 @@ const useViewStore = create((set) => ({
   setEditorView: (view) => set({ editorView: view }),
 }));
 
-const useModifiedStore = create((set) => ({
+const useTabManagerStore = create((set) => ({
+  tabState: [],
+  activeKey: null,
+
+  setActiveKey: (key) => set({ activeKey: key }),
+
+  addTab: (tab) =>
+    set((state) => ({
+      tabState: [...state.tabState, tab],
+      activeKey: tab.key,
+    })),
+
+  removeTab: (key, newKey) =>
+    set((state) => ({
+      tabState: state.tabState.filter((tab) => tab.key !== key),
+      activeKey: newKey,
+    })),
+
   // Estado para rastrear si algún archivo ha sido modificado
   areFilesModified: false,
   setFilesModified: (modified) => set({ areFilesModified: modified }),
 
   // Estado específico para cada pestaña (podrías usar un objeto donde la clave es el key de la pestaña)
-  tabStates: {},
-  setTabState: (tabKey, newState) =>
+  modifiedTabs: {},
+  setModifiedTabState: (tabKey) =>
     set((state) => ({
-      tabStates: {
-        ...state.tabStates,
-        [tabKey]: { ...state.tabStates[tabKey], ...newState },
+      modifiedTabs: {
+        ...state.modifiedTabs,
+        [tabKey]: { ...state.modifiedTabs[tabKey] },
       },
     })),
 
-  removeTabState: (tabKey) =>
+  removeModifiedTabState: (tabKey) =>
     set((state) => {
-      const newTabStates = { ...state.tabStates };
-      delete newTabStates[tabKey];
-      return { tabStates: newTabStates };
+      const newModifiedTabs = structuredClone(state.modifiedTabs);
+      delete newModifiedTabs[tabKey];
+      return { tabStates: newModifiedTabs };
     }),
 }));
 
-export { useViewStore, useModifiedStore };
+export { useViewStore, useTabManagerStore };

@@ -1,28 +1,21 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { EditFilled, CloseOutlined } from '@ant-design/icons';
 
 import ContentTab from '../view/ContentTab';
 
-import { data } from '../mock/mock';
-import { useModifiedStore } from '../store/viewStore';
-
-const contentFile = data;
-
-const initialItems = [
-  {
-    label: 'Tab 1',
-    children: <ContentTab content={contentFile} tabKey={'1'} />,
-    key: '1',
-  },
-];
+import { useTabManagerStore } from '../store/viewStore';
 
 function useTabManager() {
-  const [items, setItems] = useState(initialItems);
-  const [activeKey, setActiveKey] = useState(initialItems[0].key);
-  const newTabIndex = useRef(0);
-  const modifiedTabs = useModifiedStore((state) => state.tabStates);
+  const tabState = useTabManagerStore((state) => state.tabState);
+  const modifiedTabs = useTabManagerStore((state) => state.modifiedTabs);
+  const addTab = useTabManagerStore((state) => state.addTab);
+  const removeTabStore = useTabManagerStore((state) => state.removeTab);
+  const activeKey = useTabManagerStore((state) => state.activeKey);
+  const setActiveKey = useTabManagerStore((state) => state.setActiveKey);
 
-  console.log('[useTabManager]');
+  console.log('[useTabManager]:', { tabState, modifiedTabs, activeKey });
+
+  const newTabIndex = useRef(0);
 
   const onChange = (key) => {
     setActiveKey(key);
@@ -38,49 +31,40 @@ function useTabManager() {
 
   const add = useCallback(() => {
     const newActiveKey = `newTab${newTabIndex.current++}`;
-    const newPanes = [...items]; // Create a new array instance
-    newPanes.push({
+    addTab({
       label: 'New Tab',
       children: (
         <ContentTab
-          content={'<Hello>Content of new Tab</Hello>'}
+          content={`<Hello>Content of new Tab ${newActiveKey}</Hello>`}
           tabKey={newActiveKey}
         />
       ),
       key: newActiveKey,
     });
-    setItems(newPanes);
-    setActiveKey(newActiveKey);
-  }, [items, setItems, setActiveKey]);
+  }, [addTab]);
 
   const remove = useCallback(
     (targetKey) => {
       let newActiveKeyCandidate = activeKey;
       let lastIndex = -1;
 
-      // Busque el índice de la pestaña *anterior* a la que se va a eliminar (en la lista de elementos originales)
-      items.forEach((item, i) => {
+      tabState.forEach((item, i) => {
         if (item.key === targetKey) {
           lastIndex = i - 1;
         }
       });
 
-      const newPanes = items.filter((item) => item.key !== targetKey);
-
+      const newPanes = tabState.filter((item) => item.key !== targetKey);
       if (newPanes.length && newActiveKeyCandidate === targetKey) {
-        if (lastIndex >= 0) {
-          newActiveKeyCandidate = newPanes[lastIndex].key;
-        } else {
-          newActiveKeyCandidate = newPanes[0].key;
-        }
+        newActiveKeyCandidate =
+          lastIndex >= 0 ? newPanes[lastIndex].key : newPanes[0].key;
       } else if (newPanes.length === 0) {
         newActiveKeyCandidate = null;
       }
 
-      setItems(newPanes);
-      setActiveKey(newActiveKeyCandidate);
+      removeTabStore(targetKey, newActiveKeyCandidate);
     },
-    [activeKey, items, setItems, setActiveKey],
+    [activeKey, tabState, removeTabStore],
   );
 
   // Eventos de teclado para los Tabs
@@ -90,7 +74,7 @@ function useTabManager() {
       if (e.ctrlKey && (e.key === 'W' || e.key === 'w')) {
         e.preventDefault();
 
-        if (activeKey && items.find((item) => item.key === activeKey)) {
+        if (activeKey && tabState.find((item) => item.key === activeKey)) {
           // Ensure there's an active tab to remove
           remove(activeKey);
         }
@@ -100,18 +84,20 @@ function useTabManager() {
       // Ctrl+Tab to cycle tabs (Shift for reverse)
       if (e.ctrlKey && e.key === 'Tab') {
         e.preventDefault();
-        if (!items || items.length === 0) return; // No tabs to cycle
+        if (!tabState || tabState.length === 0) return; // No tabs to cycle
 
-        const currentIndex = items.findIndex((item) => item.key === activeKey);
-        if (currentIndex === -1 && items.length > 0) {
+        const currentIndex = tabState.findIndex(
+          (item) => item.key === activeKey,
+        );
+        if (currentIndex === -1 && tabState.length > 0) {
           // If activeKey is somehow invalid, select the first
-          setActiveKey(items[0].key);
+          setActiveKey(tabState[0].key);
           return;
         }
         const newIndex = e.shiftKey
-          ? (currentIndex - 1 + items.length) % items.length
-          : (currentIndex + 1) % items.length;
-        setActiveKey(items[newIndex].key);
+          ? (currentIndex - 1 + tabState.length) % tabState.length
+          : (currentIndex + 1) % tabState.length;
+        setActiveKey(tabState[newIndex].key);
         return;
       }
     };
@@ -122,9 +108,9 @@ function useTabManager() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [activeKey, items, remove, setActiveKey]);
+  }, [activeKey, tabState, remove, setActiveKey]);
 
-  const itemsWithIcons = items.map((item) => ({
+  const itemsWithIcons = tabState.map((item) => ({
     ...item,
     closeIcon: modifiedTabs[item.key] ? (
       <EditFilled style={{ color: '#fff' }} />

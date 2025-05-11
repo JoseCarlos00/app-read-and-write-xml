@@ -1,11 +1,19 @@
 import { useEffect, useState } from 'react';
 import Editor from '@monaco-editor/react';
 
+import { useTabManagerStore } from '../store/viewStore';
+
 const DEBOUNCE_DELAY = 500;
 
-function EditorComponent({ content, onContentChange, setIsModified }) {
+function EditorComponent({ content, onContentChange, setIsModified, tabKey }) {
   const [editorContent, setEditorContent] = useState(content);
   const [debounceTimeout, setDebounceTimeout] = useState(null);
+  const setFilesModified = useTabManagerStore(
+    (state) => state.setFilesModified,
+  );
+  const setModifiedTabState = useTabManagerStore(
+    (state) => state.setModifiedTabState,
+  );
 
   useEffect(() => {
     setEditorContent(content);
@@ -20,6 +28,12 @@ function EditorComponent({ content, onContentChange, setIsModified }) {
     };
   }, [debounceTimeout]);
 
+  const handleModifiedChange = (content) => {
+    setFilesModified(true);
+    setModifiedTabState(tabKey, { isModified: true });
+    onContentChange(content);
+  };
+
   const handleEditorChange = (value) => {
     setEditorContent(value);
     setIsModified(true);
@@ -27,7 +41,7 @@ function EditorComponent({ content, onContentChange, setIsModified }) {
     if (debounceTimeout) clearTimeout(debounceTimeout);
 
     setDebounceTimeout(
-      setTimeout(() => onContentChange(value), DEBOUNCE_DELAY),
+      setTimeout(() => handleModifiedChange(value), DEBOUNCE_DELAY),
     );
   };
 

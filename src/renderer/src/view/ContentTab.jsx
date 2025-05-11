@@ -2,19 +2,17 @@ import { useState, useEffect, useCallback } from 'react';
 
 import EditorComponent from '../components/ViewEditor';
 import ViewSummary from '../components/ViewSummary';
-import { useModifiedStore, useViewStore } from '../store/viewStore';
+import { useViewStore } from '../store/viewStore';
 
 let counter = 0;
-
 const { parseXML } = window.xml2jsAPI;
+
 function ContentTab({ content: initialContentString, tabKey }) {
   const editorView = useViewStore((state) => state.editorView);
 
   const [currentXmlString, setCurrentXmlString] =
     useState(initialContentString);
   const [parsedContentObject, setParsedContentObject] = useState(null);
-  const setFilesModified = useModifiedStore((state) => state.setFilesModified);
-  const setTabState = useModifiedStore((state) => state.setTabState);
 
   useEffect(() => {
     setCurrentXmlString(initialContentString);
@@ -50,9 +48,7 @@ function ContentTab({ content: initialContentString, tabKey }) {
   }, []);
 
   const handleModified = (isModified) => {
-    setFilesModified(true);
-    console.log({ tabKey });
-    setTabState(tabKey, { isModified, content: '' });
+    console.log('Modificar localmente:', isModified);
   };
 
   return (
