@@ -5,7 +5,7 @@ function ViewSummary({ content }) {
 
   return (
     <div style={{ maxWidth: '700px', marginRight: 'auto', marginLeft: 'auto' }}>
-      <TableComponent />
+      <TableComponent bodyContent={content} />
     </div>
   );
 }

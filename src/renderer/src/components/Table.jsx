@@ -3,29 +3,45 @@ import { Popconfirm, Table, Button, Flex } from 'antd';
 import './Table.css';
 import { useEditeContent } from '../hooks/editeContentTable';
 
-const TableComponent2 = () => {
+// import data from '../mock/data.json';
+
+const getContentBodyTable = (data) => {
+  try {
+    const shipmentDetails =
+      data.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0].Details[0]
+        .ShipmentDetail;
+
+    if (!shipmentDetails) {
+      return [];
+    }
+
+    const content = shipmentDetails.map(
+      ({ SKU, TotalQuantity: Quantity, ErpOrderLineNum: LineNumber }) => {
+        const { Item } = SKU[0];
+        const key = LineNumber.toString();
+
+        return {
+          key,
+          sku: Item.toString(),
+          qty: Quantity.toString(),
+          lineNumber: key,
+        };
+      },
+    );
+
+    return content;
+  } catch (error) {
+    console.log('Error al obtener el contenido de la tabla:', error);
+    return [];
+  }
+};
+
+const TableComponent = ({ bodyContent }) => {
   const { EditableRow, EditableCell } = useEditeContent();
 
-  const [dataSource, setDataSource] = useState([
-    {
-      key: '0',
-      sku: '1025-3645-32152',
-      qty: '32',
-      lineNumber: '646840',
-    },
-    {
-      key: '1',
-      sku: '1190-10004-30531',
-      qty: '12',
-      lineNumber: '646841',
-    },
-    {
-      key: '2',
-      sku: '1290-9905-32901',
-      qty: '50',
-      lineNumber: '646845',
-    },
-  ]);
+  const [dataSource, setDataSource] = useState(
+    getContentBodyTable(bodyContent),
+  );
 
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
 
@@ -127,10 +143,10 @@ const TableComponent2 = () => {
         columns={columns}
         size="small"
         rowSelection={rowSelection}
-        pagination={false}
+        pagination={true}
       />
     </Flex>
   );
 };
 
-export default TableComponent2;
+export default TableComponent;
