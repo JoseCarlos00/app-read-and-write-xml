@@ -5,7 +5,7 @@ import {
   SearchOutlined,
 } from '@ant-design/icons';
 import { Button, Flex, Radio, Divider } from 'antd';
-import useViewStore from '../store/viewStore';
+import { useViewStore } from '../store/viewStore';
 
 const Tools = () => {
   const selectedView = useViewStore((state) => state.editorView);
