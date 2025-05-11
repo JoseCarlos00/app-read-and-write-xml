@@ -1,8 +1,34 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import ContentTab from '../view/ContentTab';
 
-function useTabManager({ items, activeKey, setActiveKey, setItems }) {
+import { data } from '../mock/mock';
+
+const contentFile = data;
+
+const initialItems = [
+  {
+    label: 'Tab 1',
+    children: <ContentTab content={contentFile} tabKey={'1'} />,
+    key: '1',
+  },
+];
+
+function useTabManager() {
+  const [items, setItems] = useState(initialItems);
+  const [activeKey, setActiveKey] = useState(initialItems[0].key);
   const newTabIndex = useRef(0);
+
+  const onChange = (key) => {
+    setActiveKey(key);
+  };
+
+  const onEdit = (targetKey, action) => {
+    if (action === 'add') {
+      add();
+    } else if (action === 'remove') {
+      remove(targetKey);
+    }
+  };
 
   const add = useCallback(() => {
     const newActiveKey = `newTab${newTabIndex.current++}`;
@@ -91,7 +117,7 @@ function useTabManager({ items, activeKey, setActiveKey, setItems }) {
     };
   }, [activeKey, items, remove, setActiveKey]);
 
-  return { add, remove };
+  return { activeKey, items, onChange, onEdit };
 }
 
 export default useTabManager;
