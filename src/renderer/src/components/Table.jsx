@@ -49,22 +49,49 @@ const EditableCell = (_a) => {
     __awaiter(void 0, void 0, void 0, function* () {
       try {
         const values = yield form.validateFields();
+
+        const currentValue = record[dataIndex];
+        const newValue = values[dataIndex];
+
         toggleEdit();
+
+        console.log({
+          currentValue,
+          newValue,
+          'Bool: ': currentValue === newValue,
+        });
+
+        if (currentValue === newValue) {
+          return;
+        }
+
         handleSave(Object.assign(Object.assign({}, record), values));
       } catch (errInfo) {
         console.log('Save failed:', errInfo);
       }
     });
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Escape') {
+      toggleEdit();
+    }
+  };
+
   let childNode = children;
+
   if (editable) {
     childNode = editing ? (
       <Form.Item
         style={{ margin: 0 }}
         name={dataIndex}
-        rules={[{ required: true, message: `${title} is required.` }]}
+        rules={[{ required: true, message: `${title} es requerido.` }]}
       >
-        <Input ref={inputRef} onPressEnter={save} onBlur={save} />
+        <Input
+          ref={inputRef}
+          onPressEnter={save}
+          onBlur={save}
+          onKeyDown={handleKeyDown}
+        />
       </Form.Item>
     ) : (
       <div
@@ -83,21 +110,21 @@ const TableComponent2 = () => {
   const [dataSource, setDataSource] = useState([
     {
       key: '0',
-      name: 'Edward King 0',
-      age: '32',
-      address: 'London, Park Lane no. 0',
+      sku: '1025-3645-32152',
+      qty: '32',
+      lineNumber: '646840',
     },
     {
       key: '1',
-      name: 'Edward King 1',
-      age: '32',
-      address: 'London, Park Lane no. 1',
+      sku: '1190-10004-30531',
+      qty: '12',
+      lineNumber: '646841',
     },
     {
       key: '2',
-      name: 'Edward King 2',
-      age: '50',
-      address: 'London, Park Lane no. 1',
+      sku: '1290-9905-32901',
+      qty: '50',
+      lineNumber: '646845',
     },
   ]);
 
@@ -110,27 +137,29 @@ const TableComponent2 = () => {
 
   const defaultColumns = [
     {
-      title: 'name',
-      dataIndex: 'name',
+      title: 'SKU',
+      dataIndex: 'sku',
       width: '30%',
       editable: true,
     },
     {
-      title: 'age',
-      dataIndex: 'age',
+      title: 'Quantity',
+      dataIndex: 'qty',
       editable: true,
     },
     {
-      title: 'address',
-      dataIndex: 'address',
+      title: 'Line Number',
+      dataIndex: 'lineNumber',
     },
     {
-      title: 'operation',
+      title: 'Actions',
       dataIndex: 'operation',
       render: (_, record) =>
         dataSource.length >= 1 ? (
           <Popconfirm
-            title="Seguro?"
+            title={`¿Estás seguro de eliminar: ${record.sku}?`}
+            okText="Eliminar"
+            cancelText="Cancelar"
             onConfirm={() => handleDelete(record.key)}
           >
             <a>Eliminar</a>
@@ -144,6 +173,7 @@ const TableComponent2 = () => {
     const index = newData.findIndex((item) => row.key === item.key);
     const item = newData[index];
     newData.splice(index, 1, Object.assign(Object.assign({}, item), row));
+    console.log('newData', newData);
     setDataSource(newData);
   };
 
