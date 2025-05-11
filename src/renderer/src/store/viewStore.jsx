@@ -1,13 +1,18 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
-const useViewStore = create((set) => ({
-  editorView: 'summary',
-  setEditorView: (view) => set({ editorView: view }),
-}));
+const useViewStore = create(
+  persist((set) => ({
+    editorView: 'summary',
+    setEditorView: (view) => set({ editorView: view }),
+  })),
+);
 
-const useTabManagerStore = create((set) => ({
+const useTabManagerStore = create((set, get) => ({
   tabState: [],
   activeKey: null,
+  areFilesModified: false,
+  modifiedTabs: {},
 
   setActiveKey: (key) => set({ activeKey: key }),
 
@@ -23,12 +28,8 @@ const useTabManagerStore = create((set) => ({
       activeKey: newKey,
     })),
 
-  // Estado para rastrear si algún archivo ha sido modificado
-  areFilesModified: false,
   setFilesModified: (modified) => set({ areFilesModified: modified }),
 
-  // Estado específico para cada pestaña (podrías usar un objeto donde la clave es el key de la pestaña)
-  modifiedTabs: {},
   setModifiedTabState: (tabKey) =>
     set((state) => ({
       modifiedTabs: {
@@ -39,10 +40,21 @@ const useTabManagerStore = create((set) => ({
 
   removeModifiedTabState: (tabKey) =>
     set((state) => {
-      const newModifiedTabs = structuredClone(state.modifiedTabs);
+      const newModifiedTabs = { ...state.modifiedTabs };
       delete newModifiedTabs[tabKey];
-      return { tabStates: newModifiedTabs };
+      return { modifiedTabs: newModifiedTabs };
     }),
+
+  saveFile: () => {
+    const activeKey = get().activeKey;
+    const removeModifiedTabState = get().removeModifiedTabState;
+    const modifiedTabs = get().modifiedTabs;
+
+    // Verifica si activeKey existe y está presente en modifiedTabs
+    if (activeKey && modifiedTabs[activeKey]) {
+      removeModifiedTabState(activeKey);
+    }
+  },
 }));
 
 export { useViewStore, useTabManagerStore };

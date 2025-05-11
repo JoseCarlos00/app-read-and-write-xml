@@ -8,6 +8,7 @@ const DEBOUNCE_DELAY = 500;
 function EditorComponent({ content, onContentChange, setIsModified, tabKey }) {
   const [editorContent, setEditorContent] = useState(content);
   const [debounceTimeout, setDebounceTimeout] = useState(null);
+
   const setFilesModified = useTabManagerStore(
     (state) => state.setFilesModified,
   );

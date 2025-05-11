@@ -1,18 +1,26 @@
+import { Button, Flex, Radio, Divider } from 'antd';
 import {
   ApartmentOutlined,
   FundProjectionScreenOutlined,
   SaveOutlined,
   SearchOutlined,
 } from '@ant-design/icons';
-import { Button, Flex, Radio, Divider } from 'antd';
-import { useViewStore } from '../store/viewStore';
+
+import { useViewStore, useTabManagerStore } from '../store/viewStore';
 
 const Tools = () => {
   const selectedView = useViewStore((state) => state.editorView);
   const setEditorView = useViewStore((state) => state.setEditorView);
+  const saveFile = useTabManagerStore((state) => state.saveFile);
+
+  console.log('Tools');
 
   const handleViewChange = (e) => {
     setEditorView(e.target.value);
+  };
+
+  const handleSaveFile = () => {
+    saveFile();
   };
 
   return (
@@ -48,7 +56,7 @@ const Tools = () => {
             size="small"
             title="Buscar"
             icon={<SearchOutlined />}
-            onClick={() => console.log('Buscar clicked')}
+            onClick={() => console.log('Buscar')}
           />
 
           <Divider
@@ -61,7 +69,7 @@ const Tools = () => {
             size="small"
             title="Guardar"
             icon={<SaveOutlined />}
-            onClick={() => console.log('Guardar clicked')}
+            onClick={handleSaveFile}
           />
         </Flex>
       </Flex>
