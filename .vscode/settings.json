@@ -20,7 +20,9 @@
     "renderizado",
     "shxml",
     "shxmlp",
-    "togglefullscreen"
+    "togglefullscreen",
+    "WMWDATA",
+    "WMWROOT"
   ],
   "prettier.endOfLine": "lf",
   "editor.unfoldOnClickAfterEndOfLine": true
