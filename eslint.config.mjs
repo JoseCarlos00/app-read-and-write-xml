@@ -12,21 +12,25 @@ export default [
   {
     settings: {
       react: {
-        version: 'detect'
-      }
-    }
+        version: 'detect',
+      },
+    },
   },
   {
     files: ['**/*.{js,jsx}'],
     plugins: {
       'react-hooks': eslintPluginReactHooks,
-      'react-refresh': eslintPluginReactRefresh
+      'react-refresh': eslintPluginReactRefresh,
     },
     rules: {
       ...eslintPluginReactHooks.configs.recommended.rules,
       ...eslintPluginReactRefresh.configs.vite.rules,
-      "react/prop-types": "off",
-    }
+      'react/prop-types': 'off',
+      'max-len': [
+        'error',
+        { code: 120, ignoreComments: true, ignoreStrings: true },
+      ],
+    },
   },
-  eslintConfigPrettier
-]
+  eslintConfigPrettier,
+];
