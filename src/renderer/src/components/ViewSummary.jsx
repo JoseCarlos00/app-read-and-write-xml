@@ -3,6 +3,7 @@ import { useTabManagerStore } from '../store/viewStore';
 import TableComponent from './Table';
 
 const DEBOUNCE_DELAY = 500;
+const { buildXML } = window.xml2jsAPI;
 
 const useEditedContent = ({
   onContentChange,
@@ -27,8 +28,22 @@ const useEditedContent = ({
     };
   }, [debounceTimeout]);
 
-  const buildObject = () => {
-    return 'buildObject XML String';
+  const buildObject = (newObjectGlobal) => {
+    try {
+      const { status, error, data } = buildXML(newObjectGlobal);
+
+      if (status === 'error') {
+        throw new Error(error);
+      }
+
+      return data;
+    } catch (error) {
+      console.error(
+        'handleModifiedChange Error: Excepción durante la ejecución de buildObject.',
+        error,
+      );
+      return null;
+    }
   };
 
   const handleModifiedChange = (content) => {
@@ -71,22 +86,13 @@ const useEditedContent = ({
       return; // Detener el procesamiento
     }
 
-    let xmlString;
-    try {
-      // 3. Construir la cadena XML y verificar su validez
-      xmlString = buildObject(newObjectGlobal); // buildObject debería ser robusto
-      if (xmlString === null || typeof xmlString !== 'string') {
-        // Asumiendo que buildObject puede devolver null o algo no-string en error
-        console.error(
-          'handleModifiedChange Error: buildObject no produjo una cadena XML válida.',
-          { output: xmlString },
-        );
-        return; // Detener el procesamiento
-      }
-    } catch (error) {
+    const xmlString = buildObject(newObjectGlobal);
+
+    if (xmlString === null || typeof xmlString !== 'string') {
+      // Asumiendo que buildObject puede devolver null o algo no-string en error
       console.error(
-        'handleModifiedChange Error: Excepción durante la ejecución de buildObject.',
-        error,
+        'handleModifiedChange Error: buildObject no produjo una cadena XML válida.',
+        { output: xmlString },
       );
       return; // Detener el procesamiento
     }

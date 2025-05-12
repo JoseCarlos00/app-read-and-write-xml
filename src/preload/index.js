@@ -1,22 +1,33 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import { electronAPI } from '@electron-toolkit/preload';
-import { parseString } from 'xml2js';
+import { parseString, Builder } from 'xml2js'; // Importa Builder
 
 // Custom APIs for renderer
 const customParseXmlAPI = {
   parseXML: (xml) => {
-    let parser = null;
+    let parserResult = null; // Renombrado para evitar confusión
 
     parseString(xml, (err, result) => {
       if (!err) {
-        parser = { status: 'success', data: result };
+        parserResult = { status: 'success', data: result };
       } else {
         console.error('Error parsing XML:', err);
-        parser = { error: true };
+        parserResult = { status: 'error', error: err.message };
       }
     });
 
-    return parser;
+    return parserResult;
+  },
+
+  buildXML: (jsObject) => {
+    try {
+      const builder = new Builder();
+      const xmlString = builder.buildObject(jsObject);
+      return { status: 'success', data: xmlString };
+    } catch (err) {
+      console.error('Error building XML:', err);
+      return { status: 'error', error: err.message };
+    }
   },
 };
 

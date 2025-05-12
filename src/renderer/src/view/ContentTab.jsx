@@ -20,23 +20,21 @@ function ContentTab({ content: initialContentString, tabKey }) {
 
   // Effect to parse XML whenever currentXmlString changes
   useEffect(() => {
-    if (currentXmlString) {
-      // console.log('Attempting to parse XML:', currentXmlString); // For debugging
-      const { data, error } = parseXML(currentXmlString);
+    try {
+      if (currentXmlString) {
+        const { data, error, status } = parseXML(currentXmlString);
 
-      // console.log('Parsed XML result:', data, 'Error:', error); // For debugging
+        if (status === 'error') {
+          console.error('Error parsing XML:', error);
+          return;
+        }
 
-      if (error) {
-        console.error('Error parsing XML:', error.message);
-
-        setParsedContentObject({
-          error: 'Failed to parse XML',
-          details: error.message,
-        });
-        return;
+        setParsedContentObject(data);
+      } else {
+        setParsedContentObject(null);
       }
-      setParsedContentObject(data);
-    } else {
+    } catch (error) {
+      console.error('Error parsing XML:', error);
       setParsedContentObject(null);
     }
   }, [currentXmlString]);
