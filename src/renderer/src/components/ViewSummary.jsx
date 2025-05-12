@@ -32,20 +32,74 @@ const useEditedContent = ({
   };
 
   const handleModifiedChange = (content) => {
-    // setFilesModified(true);
-    setModifiedTabState(tabKey, { isModified: true });
+    // Comprobar tabKey antes de usarlo
+    if (typeof tabKey === 'undefined' || tabKey === null) {
+      console.warn(
+        'handleModifiedChange: tabKey es undefined o null. Omitiendo setModifiedTabState.',
+      );
+    } else {
+      setModifiedTabState(tabKey, { isModified: true });
+    }
 
-    console.log('handleModifiedChange:', {
-      content,
-      globalObject,
-    });
+    setFilesModified(true);
 
-    const newObjectGlobal = getObjectGlobal(globalObject.dataObject, content);
-    const xmlString = buildObject(newObjectGlobal);
+    // 1. Validar globalObject y globalObject.dataObject
+    if (!globalObject || !globalObject.dataObject) {
+      console.error(
+        'handleModifiedChange Error: globalObject o globalObject.dataObject es inválido.',
+        globalObject,
+      );
+      // Aquí podrías revertir actualizaciones optimistas de UI o notificar al usuario
+      return; // Detener el procesamiento
+    }
 
-    // Parser Object -> xmlString
-    // onContentChange(xmlString); // -> Mandar cambios a la fuente de verdad
-    console.log('Modificar remoto:', xmlString);
+    let newObjectGlobal;
+    try {
+      newObjectGlobal = getObjectGlobal(globalObject.dataObject, content);
+      // 2. Verificar si getObjectGlobal falló (asumiendo que devuelve null en error)
+      if (newObjectGlobal === null) {
+        console.error(
+          'handleModifiedChange Error: Falló la actualización del objeto global con el nuevo contenido.',
+        );
+        return; // Detener el procesamiento
+      }
+    } catch (error) {
+      console.error(
+        'handleModifiedChange Error: Excepción durante la ejecución de getObjectGlobal.',
+        error,
+      );
+      return; // Detener el procesamiento
+    }
+
+    let xmlString;
+    try {
+      // 3. Construir la cadena XML y verificar su validez
+      xmlString = buildObject(newObjectGlobal); // buildObject debería ser robusto
+      if (xmlString === null || typeof xmlString !== 'string') {
+        // Asumiendo que buildObject puede devolver null o algo no-string en error
+        console.error(
+          'handleModifiedChange Error: buildObject no produjo una cadena XML válida.',
+          { output: xmlString },
+        );
+        return; // Detener el procesamiento
+      }
+    } catch (error) {
+      console.error(
+        'handleModifiedChange Error: Excepción durante la ejecución de buildObject.',
+        error,
+      );
+      return; // Detener el procesamiento
+    }
+
+    // 4. Verificar que onContentChange sea una función antes de llamarla
+    if (typeof onContentChange === 'function') {
+      onContentChange(xmlString);
+      console.log('Modificar remoto:');
+    } else {
+      console.error(
+        'handleModifiedChange Error: onContentChange no es una función.',
+      );
+    }
   };
 
   const handleObjectContentChange = (newTableContent) => {
@@ -64,19 +118,61 @@ const useEditedContent = ({
 
 const getObjectGlobal = (globalObject, content) => {
   try {
+    // Validación básica de la estructura de globalObject
+    if (
+      !globalObject ||
+      !globalObject.WMWROOT ||
+      !globalObject.WMWROOT.WMWDATA ||
+      !globalObject.WMWROOT.WMWDATA[0] ||
+      !globalObject.WMWROOT.WMWDATA[0].Shipments ||
+      !globalObject.WMWROOT.WMWDATA[0].Shipments[0] ||
+      !globalObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment ||
+      !globalObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0] ||
+      !globalObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0].Details ||
+      !globalObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0].Details[0]
+    ) {
+      console.error(
+        'Error: Estructura de globalObject inválida en getObjectGlobal.',
+      );
+      return null; // Indicar fallo
+    }
     // Agregar al objecto global los cambios de la tabla
     globalObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0].Details[0].ShipmentDetail =
       content;
 
-    return [globalObject];
+    return globalObject;
   } catch (error) {
-    console.log('Error al obtener el contenido de la tabla:', error);
-    return {};
+    console.error(
+      'Error en getObjectGlobal al actualizar ShipmentDetail:',
+      error,
+    );
+    return null; // Indicar fallo
   }
 };
 
 const createObjectGlobal = (dataObject) => {
   try {
+    // Validación básica de la estructura de dataObject
+    if (
+      !dataObject ||
+      !dataObject.WMWROOT ||
+      !dataObject.WMWROOT.WMWDATA ||
+      !dataObject.WMWROOT.WMWDATA[0] ||
+      !dataObject.WMWROOT.WMWDATA[0].Shipments ||
+      !dataObject.WMWROOT.WMWDATA[0].Shipments[0] ||
+      !dataObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment ||
+      !dataObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0] ||
+      !dataObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0].Details ||
+      !dataObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0].Details[0] ||
+      !dataObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0].Details[0]
+        .ShipmentDetail
+    ) {
+      console.error(
+        'Error: Estructura de dataObject inválida en createObjectGlobal.',
+      );
+      return null; // Indicar fallo
+    }
+
     const shipmentsDetail = [
       ...dataObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0].Details[0]
         .ShipmentDetail,
@@ -87,14 +183,14 @@ const createObjectGlobal = (dataObject) => {
 
     return { tableContent: shipmentsDetail, dataObject };
   } catch (error) {
-    console.log('Error al obtener el contenido de la tabla:', error);
-    return {};
+    console.error('Error en createObjectGlobal:', error);
+    return null; // Indicar fallo
   }
 };
 
 function ViewSummary({ content, onContentChange, setIsModified, tabKey }) {
   // Objecto separado del contenido que va hacia los componentes hijos
-  // ObjectGlobal - Sin modificaciones
+  // globalObject almacena { tableContent, dataObject } o un estado de error/vacío
   const [globalObject, setGlobalObject] = useState({});
 
   const { handleObjectContentChange } = useEditedContent({
@@ -106,7 +202,17 @@ function ViewSummary({ content, onContentChange, setIsModified, tabKey }) {
   });
 
   useEffect(() => {
-    setGlobalObject(createObjectGlobal(content));
+    const initialGlobalObject = createObjectGlobal(content);
+
+    if (initialGlobalObject) {
+      setGlobalObject(initialGlobalObject);
+    } else {
+      console.error(
+        'ViewSummary Error: Falló la creación del objeto global inicial. El contenido podría ser inválido.',
+      );
+      // Establecer un estado definido de vacío/error para evitar errores posteriores
+      setGlobalObject({ tableContent: [], dataObject: null });
+    }
   }, [content]);
 
   console.log('ViewSummary', {
