@@ -1,50 +1,49 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Editor from '@monaco-editor/react';
-
-import { useTabManagerStore } from '../store/viewStore';
 
 const DEBOUNCE_DELAY = 500;
 
-function EditorComponent({ content, onContentChange, setIsModified, tabKey }) {
+function EditorComponent({ content, onContentChange, tabKey }) {
   const [editorContent, setEditorContent] = useState(content);
-  const [debounceTimeout, setDebounceTimeout] = useState(null);
+  const debounceTimeoutRef = useRef(null);
 
-  const setFilesModified = useTabManagerStore(
-    (state) => state.setFilesModified,
-  );
-  const setModifiedTabState = useTabManagerStore(
-    (state) => state.setModifiedTabState,
-  );
-
+  // Sincronizar editorContent si la prop 'content' cambia desde el padre
   useEffect(() => {
-    setEditorContent(content);
-  }, [content]);
+    // Solo actualizar si el contenido de la prop es realmente diferente
+    // al contenido actual del editor para evitar bucles o renders innecesarios.
+    if (content !== editorContent) {
+      setEditorContent(content);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [content]); // Este efecto se ejecuta cuando la prop 'content' cambia
 
-  // Limpiar el timeout cuando el componente se desmonte
   useEffect(() => {
     return () => {
-      if (debounceTimeout) {
-        clearTimeout(debounceTimeout);
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
       }
     };
-  }, [debounceTimeout]);
+  }, []);
 
-  const handleModifiedChange = (content) => {
-    setFilesModified(true);
-    setModifiedTabState(tabKey, { isModified: true });
-    onContentChange(content);
+  const handleEditorChange = (newValue) => {
+    setEditorContent(newValue);
+
+    // Limpiar el timeout anterior si existe
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+
+    // Configurar el nuevo timeout. Actualizar la ref no causa un re-render.
+    debounceTimeoutRef.current = setTimeout(() => {
+      onContentChange(newValue);
+    }, DEBOUNCE_DELAY);
   };
 
-  const handleEditorChange = (value) => {
-    setEditorContent(value);
-    setIsModified(true);
-
-    if (debounceTimeout) clearTimeout(debounceTimeout);
-
-    setDebounceTimeout(
-      setTimeout(() => handleModifiedChange(value), DEBOUNCE_DELAY),
-    );
-  };
+  console.log('[EditorComponent] Render:', {
+    propContent: content,
+    stateEditorContent: editorContent,
+    tabKey,
+  });
 
   return (
     <>
@@ -53,10 +52,11 @@ function EditorComponent({ content, onContentChange, setIsModified, tabKey }) {
         width="100%"
         theme="vs-dark"
         language="xml"
-        value={editorContent}
+        value={editorContent || ''}
         onChange={handleEditorChange}
       />
     </>
   );
 }
+
 export default EditorComponent;

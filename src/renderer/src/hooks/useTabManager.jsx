@@ -13,8 +13,6 @@ function useTabManager() {
   const activeKey = useTabManagerStore((state) => state.activeKey);
   const setActiveKey = useTabManagerStore((state) => state.setActiveKey);
 
-  console.log('[useTabManager]:', { tabState, modifiedTabs, activeKey });
-
   const newTabIndex = useRef(0);
 
   const onChange = (key) => {
@@ -118,6 +116,13 @@ function useTabManager() {
       <CloseOutlined />
     ),
   }));
+
+  console.log('[useTabManager]:', {
+    tabState,
+    modifiedTabs,
+    activeKey,
+    items: itemsWithIcons,
+  });
 
   return { activeKey, items: itemsWithIcons, onChange, onEdit };
 }

@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 
 import EditorComponent from '../components/ViewEditor';
 import ViewSummary from '../components/ViewSummary';
-import { useViewStore } from '../store/viewStore';
+import { useTabManagerStore, useViewStore } from '../store/viewStore';
 
 let counter = 0;
 const { parseXML } = window.xml2jsAPI;
@@ -10,9 +10,15 @@ const { parseXML } = window.xml2jsAPI;
 function ContentTab({ content: initialContentString, tabKey }) {
   const editorView = useViewStore((state) => state.editorView);
 
-  const [currentXmlString, setCurrentXmlString] =
-    useState(initialContentString);
+  const [currentXmlString, setCurrentXmlString] = useState(null);
   const [parsedContentObject, setParsedContentObject] = useState(null);
+
+  const setFilesModified = useTabManagerStore(
+    (state) => state.setFilesModified,
+  );
+  const setModifiedTabState = useTabManagerStore(
+    (state) => state.setModifiedTabState,
+  );
 
   useEffect(() => {
     setCurrentXmlString(initialContentString);
@@ -40,14 +46,21 @@ function ContentTab({ content: initialContentString, tabKey }) {
   }, [currentXmlString]);
 
   // Callback for EditorComponent to update content and modification status
-  const handleEditorContentChange = useCallback((newContent) => {
+  const handleEditorContentChange = (newContent) => {
     setCurrentXmlString(newContent);
+    setFilesModified(true);
+    setFilesModified(true);
+    setModifiedTabState(tabKey, { isModified: true });
     console.log('Editor content changed:', ++counter);
-  }, []);
-
-  const handleModified = (isModified) => {
-    console.log('Modificar localmente:', isModified);
   };
+
+  console.log('[ContentTab]:', {
+    editorView,
+    tabKey,
+    initialContentString,
+    currentXmlString,
+    parsedContentObject,
+  });
 
   return (
     <>
@@ -55,7 +68,6 @@ function ContentTab({ content: initialContentString, tabKey }) {
         <EditorComponent
           content={currentXmlString}
           onContentChange={handleEditorContentChange}
-          setIsModified={handleModified}
           tabKey={tabKey}
         />
       )}
@@ -63,7 +75,6 @@ function ContentTab({ content: initialContentString, tabKey }) {
         <ViewSummary
           content={parsedContentObject}
           onContentChange={handleEditorContentChange}
-          setIsModified={handleModified}
           tabKey={tabKey}
         />
       )}
