@@ -1,23 +1,11 @@
 import { useEffect, useState } from 'react';
-import { useTabManagerStore } from '../store/viewStore';
 import TableComponent from './Table';
 
 const DEBOUNCE_DELAY = 500;
 const { buildXML } = window.xml2jsAPI;
 
-const useEditedContent = ({
-  onContentChange,
-  setIsModified,
-  tabKey,
-  globalObject,
-}) => {
+const useEditedContent = ({ onContentChange, globalObject }) => {
   const [debounceTimeout, setDebounceTimeout] = useState(null);
-  const setFilesModified = useTabManagerStore(
-    (state) => state.setFilesModified,
-  );
-  const setModifiedTabState = useTabManagerStore(
-    (state) => state.setModifiedTabState,
-  );
 
   // Limpiar el timeout cuando el componente se desmonte
   useEffect(() => {
@@ -47,17 +35,6 @@ const useEditedContent = ({
   };
 
   const handleModifiedChange = (content) => {
-    // Comprobar tabKey antes de usarlo
-    if (typeof tabKey === 'undefined' || tabKey === null) {
-      console.warn(
-        'handleModifiedChange: tabKey es undefined o null. Omitiendo setModifiedTabState.',
-      );
-    } else {
-      setModifiedTabState(tabKey, { isModified: true });
-    }
-
-    setFilesModified(true);
-
     // 1. Validar globalObject y globalObject.dataObject
     if (!globalObject || !globalObject.dataObject) {
       console.error(
@@ -110,7 +87,6 @@ const useEditedContent = ({
 
   const handleObjectContentChange = (newTableContent) => {
     console.log('[handleObjectContentChange]:', newTableContent);
-    setIsModified(true);
 
     if (debounceTimeout) clearTimeout(debounceTimeout);
 
@@ -122,20 +98,20 @@ const useEditedContent = ({
   return { handleObjectContentChange };
 };
 
-const getObjectGlobal = (globalObject, content) => {
+const getObjectGlobal = (baseObject, newDetailsContent) => {
   try {
     // Validación básica de la estructura de globalObject
     if (
-      !globalObject ||
-      !globalObject.WMWROOT ||
-      !globalObject.WMWROOT.WMWDATA ||
-      !globalObject.WMWROOT.WMWDATA[0] ||
-      !globalObject.WMWROOT.WMWDATA[0].Shipments ||
-      !globalObject.WMWROOT.WMWDATA[0].Shipments[0] ||
-      !globalObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment ||
-      !globalObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0] ||
-      !globalObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0].Details ||
-      !globalObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0].Details[0]
+      !baseObject ||
+      !baseObject.WMWROOT ||
+      !baseObject.WMWROOT.WMWDATA ||
+      !baseObject.WMWROOT.WMWDATA[0] ||
+      !baseObject.WMWROOT.WMWDATA[0].Shipments ||
+      !baseObject.WMWROOT.WMWDATA[0].Shipments[0] ||
+      !baseObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment ||
+      !baseObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0] ||
+      !baseObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0].Details ||
+      !baseObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0].Details[0]
     ) {
       console.error(
         'Error: Estructura de globalObject inválida en getObjectGlobal.',
@@ -143,10 +119,11 @@ const getObjectGlobal = (globalObject, content) => {
       return null; // Indicar fallo
     }
     // Agregar al objecto global los cambios de la tabla
-    globalObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0].Details[0].ShipmentDetail =
-      content;
+    // baseObject es globalObject.dataObject del estado, que es una copia y se puede mutar aquí.
+    baseObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0].Details[0].ShipmentDetail =
+      newDetailsContent;
 
-    return globalObject;
+    return baseObject;
   } catch (error) {
     console.error(
       'Error en getObjectGlobal al actualizar ShipmentDetail:',
@@ -156,59 +133,77 @@ const getObjectGlobal = (globalObject, content) => {
   }
 };
 
-const createObjectGlobal = (dataObject) => {
+/**
+ * @param {Object} sourceDataObject
+ * @returns {Object} { tableContent: shipmentsDetail, dataObject }
+ */
+const createObjectGlobal = (sourceDataObject) => {
   try {
-    // Validación básica de la estructura de dataObject
+    // Validación básica de la estructura de sourceDataObject hasta Details[0]
     if (
-      !dataObject ||
-      !dataObject.WMWROOT ||
-      !dataObject.WMWROOT.WMWDATA ||
-      !dataObject.WMWROOT.WMWDATA[0] ||
-      !dataObject.WMWROOT.WMWDATA[0].Shipments ||
-      !dataObject.WMWROOT.WMWDATA[0].Shipments[0] ||
-      !dataObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment ||
-      !dataObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0] ||
-      !dataObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0].Details ||
-      !dataObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0].Details[0] ||
-      !dataObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0].Details[0]
+      !sourceDataObject ||
+      !sourceDataObject.WMWROOT ||
+      !sourceDataObject.WMWROOT.WMWDATA ||
+      !sourceDataObject.WMWROOT.WMWDATA[0] ||
+      !sourceDataObject.WMWROOT.WMWDATA[0].Shipments ||
+      !sourceDataObject.WMWROOT.WMWDATA[0].Shipments[0] ||
+      !sourceDataObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment ||
+      !sourceDataObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0] ||
+      !sourceDataObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0].Details ||
+      !sourceDataObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0]
+        .Details[0] ||
+      !sourceDataObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0].Details[0]
         .ShipmentDetail
     ) {
       console.error(
-        'Error: Estructura de dataObject inválida en createObjectGlobal.',
+        'Error: Estructura de sourceDataObject inválida en createObjectGlobal (ruta a Details).',
       );
       return null; // Indicar fallo
     }
 
-    const shipmentsDetail = [
-      ...dataObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0].Details[0]
-        .ShipmentDetail,
-    ];
+    const detailsNodeSource =
+      sourceDataObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0].Details[0];
 
-    // Limpiar `Array` de shipments de dataObject
-    dataObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0].Details[0].ShipmentDetail.length = 0;
+    // Extraer tableContent. Si ShipmentDetail falta o no es un array, usar [].
+    // Esto maneja el caso donde buildXML omite la etiqueta para arrays vacíos.
+    const currentShipmentDetailsSource = Array.isArray(
+      detailsNodeSource.ShipmentDetail,
+    )
+      ? detailsNodeSource.ShipmentDetail
+      : [];
 
-    return { tableContent: shipmentsDetail, dataObject };
+    const tableContent = [...currentShipmentDetailsSource];
+
+    const templateDataObject = structuredClone(sourceDataObject);
+
+    // Asegurar que ShipmentDetail sea un array vacío en el objeto de estado (template).
+    templateDataObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0].Details[0].ShipmentDetail =
+      [];
+
+    return { tableContent, dataObject: templateDataObject };
   } catch (error) {
     console.error('Error en createObjectGlobal:', error);
     return null; // Indicar fallo
   }
 };
 
-function ViewSummary({ content, onContentChange, setIsModified, tabKey }) {
+function ViewSummary({ content, onContentChange, tabKey }) {
   // Objecto separado del contenido que va hacia los componentes hijos
   // globalObject almacena { tableContent, dataObject } o un estado de error/vacío
-  const [globalObject, setGlobalObject] = useState({});
+  const [globalObject, setGlobalObject] = useState({
+    tableContent: [],
+    dataObject: null,
+  });
 
   const { handleObjectContentChange } = useEditedContent({
     onContentChange,
-    setIsModified,
-    tabKey,
     setGlobalObject,
     globalObject,
   });
 
   useEffect(() => {
     const initialGlobalObject = createObjectGlobal(content);
+    console.log('useEffect ViewSummary: [content]');
 
     if (initialGlobalObject) {
       setGlobalObject(initialGlobalObject);
@@ -221,9 +216,11 @@ function ViewSummary({ content, onContentChange, setIsModified, tabKey }) {
     }
   }, [content]);
 
-  console.log('ViewSummary', {
+  console.log('[ViewSummary]', {
     content,
     tableContent: globalObject.tableContent,
+    dataObject: globalObject.dataObject,
+    tabKey,
   });
 
   return (

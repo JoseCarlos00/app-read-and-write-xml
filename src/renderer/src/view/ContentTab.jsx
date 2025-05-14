@@ -48,9 +48,9 @@ function ContentTab({ content: initialContentString, tabKey }) {
   // Callback for EditorComponent to update content and modification status
   const handleEditorContentChange = (newContent) => {
     setCurrentXmlString(newContent);
-    setFilesModified(true);
-    setFilesModified(true);
-    setModifiedTabState(tabKey, { isModified: true });
+    // setFilesModified(true);
+    // setFilesModified(true);
+    // setModifiedTabState(tabKey, { isModified: true });
     console.log('Editor content changed:', ++counter);
   };
 

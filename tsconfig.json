@@ -1,0 +1,22 @@
+ {
+   "compilerOptions": {
+     "target": "ES2022", // O la versión de ECMAScript que necesites
+     "module": "ESNext", // O el sistema de módulos que uses (ESNext es común con bundlers)
+     "moduleResolution": "Bundler", // Opciones para resolver módulos
+     "jsx": "react-jsx", // Soporte para JSX en archivos .tsx
+     "strict": true, // Habilita todas las opciones estrictas de verificación de tipos (recomendado)
+     "strictNullChecks": true, // Ya estaba en jsconfig, asegura que null y undefined se manejen explícitamente
+     "strictFunctionTypes": true, // Ya estaba en jsconfig, asegura tipos de función estrictos
+     "esModuleInterop": true, // Mejora la interoperabilidad con módulos CommonJS
+     "skipLibCheck": true, // Omite la verificación de tipos en archivos de librerías
+     "forceConsistentCasingInFileNames": true, // Asegura consistencia en el uso de mayúsculas/minúsculas en nombres de archivo
+     "allowImportingTsExtensions": true, // Permite importar archivos .ts/.tsx con extensión
+     "resolveJsonModule": true, // Permite importar archivos .json
+     "isolatedModules": true, // Asegura que cada archivo pueda ser compilado por separado
+     "noEmit": true, // No emite archivos de salida (Vite se encarga de esto)
+     "lib": ["DOM", "DOM.Iterable", "ESNext"], // Librerías estándar disponibles en el entorno
+     "allowJs": true // Permite compilar archivos JavaScript (útil durante la migración)
+   },
+   "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.js", "src/**/*.jsx"], // Archivos a incluir en la compilación
+   "exclude": ["node_modules", "dist", "out"] // Archivos a excluir
+ }
