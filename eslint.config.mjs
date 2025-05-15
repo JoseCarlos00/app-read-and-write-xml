@@ -69,7 +69,7 @@ export default tseslint.config(
         },
       ],
       // You can add/override more rules here, e.g.:
-      // '@typescript-eslint/no-explicit-any': 'warn',
+      // '@typescript-eslint/no-explicit-any': 'off',
     },
   },
 
@@ -92,6 +92,7 @@ export default tseslint.config(
     languageOptions: { globals: { ...globals.node } },
     rules: {
       // Add any Preload script specific rules here
+      // '@typescript-eslint/no-explicit-any': 'off',
     },
   },
   eslintConfigPrettier,
