@@ -1,23 +1,34 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import TableComponent from './Table';
 
+import { ShipmentDetail, RootObject } from '../types/shipmentDetail';
+import {
+  getArrayObjectShipmentDetail,
+  updateParsedXMLWithTableData,
+} from '../utils/objectGlobal';
+
 const DEBOUNCE_DELAY = 500;
-const { buildXML } = window.xml2jsAPI;
+const { buildXML, parseXMLPromise } = window.xml2jsAPI;
 
 interface Props {
   content: string;
   onContentChange: (newContent: string) => void;
   tabKey: string;
 }
+interface PropsEdit {
+  onContentChange: (newContent: string) => void;
+  parsedXmlObject: RootObject | null;
+}
 
-const INITIAL_STATE = {
-  currentXmlString: '',
-  parsedContentObject: {},
+type ParseObject = {
+  content: string;
+  tabKey: string;
 };
 
-let counter = 0;
+// const counter = 0;
 
-const useEditedContent = ({ onContentChange, globalObject }) => {
+const useEditedContent = ({ onContentChange, parsedXmlObject }: PropsEdit) => {
+  // callback: () => void
   const [debounceTimeout, setDebounceTimeout] = useState(null);
 
   // Limpiar el timeout cuando el componente se desmonte
@@ -29,9 +40,9 @@ const useEditedContent = ({ onContentChange, globalObject }) => {
     };
   }, [debounceTimeout]);
 
-  const buildObject = (newObjectGlobal) => {
+  const buildObject = (ojectGlobalToBuild: RootObject) => {
     try {
-      const { status, error, data } = buildXML(newObjectGlobal);
+      const { status, error, data } = buildXML(ojectGlobalToBuild);
 
       if (status === 'error') {
         throw new Error(error);
@@ -47,36 +58,31 @@ const useEditedContent = ({ onContentChange, globalObject }) => {
     }
   };
 
-  const handleModifiedChange = (content) => {
+  const handleModifiedChange = (content: Array<ShipmentDetail>) => {
     // 1. Validar globalObject y globalObject.dataObject
-    if (!globalObject || !globalObject.dataObject) {
+    if (!parsedXmlObject) {
       console.error(
-        'handleModifiedChange Error: globalObject o globalObject.dataObject es inválido.',
-        globalObject,
+        'handleModifiedChange Error: parsedXmlObject es inválido.',
+        parsedXmlObject,
       );
       // Aquí podrías revertir actualizaciones optimistas de UI o notificar al usuario
       return; // Detener el procesamiento
     }
 
-    let newObjectGlobal;
-    try {
-      newObjectGlobal = getObjectGlobal(globalObject.dataObject, content);
-      // 2. Verificar si getObjectGlobal falló (asumiendo que devuelve null en error)
-      if (newObjectGlobal === null) {
-        console.error(
-          'handleModifiedChange Error: Falló la actualización del objeto global con el nuevo contenido.',
-        );
-        return; // Detener el procesamiento
-      }
-    } catch (error) {
+    const { ojectGlobalToBuild, success, error } = updateParsedXMLWithTableData(
+      parsedXmlObject,
+      content,
+    );
+
+    if (!success || !ojectGlobalToBuild) {
       console.error(
-        'handleModifiedChange Error: Excepción durante la ejecución de getObjectGlobal.',
+        'handleModifiedChange Error: updateParsedXMLWithTableData: ',
         error,
       );
-      return; // Detener el procesamiento
+      return;
     }
 
-    const xmlString = buildObject(newObjectGlobal);
+    const xmlString = buildObject(ojectGlobalToBuild);
 
     if (xmlString === null || typeof xmlString !== 'string') {
       // Asumiendo que buildObject puede devolver null o algo no-string en error
@@ -98,7 +104,7 @@ const useEditedContent = ({ onContentChange, globalObject }) => {
     }
   };
 
-  const handleObjectContentChange = (newTableContent) => {
+  const handleTableContentChange = (newTableContent: Array<ShipmentDetail>) => {
     console.log('[handleObjectContentChange]:', newTableContent);
 
     if (debounceTimeout) clearTimeout(debounceTimeout);
@@ -108,98 +114,124 @@ const useEditedContent = ({ onContentChange, globalObject }) => {
     );
   };
 
-  return { handleObjectContentChange };
+  return { handleTableContentChange };
 };
 
-const useParsedObject = ({ content: initialContentString, tabKey }) => {
-  const [currentXmlString, setCurrentXmlString] = useState(
-    INITIAL_STATE.currentXmlString,
-  );
-  const [parsedContentObject, setParsedContentObject] = useState(
-    INITIAL_STATE.parsedContentObject,
-  );
+const extractTableDataFromParsedXML = (
+  parsedXmlObject: RootObject,
+): Array<ShipmentDetail> => {
+  if (!parsedXmlObject) {
+    return [];
+  }
 
-  // Effect to parse XML whenever currentXmlString changes
+  const { success, shipmentDetailArray } =
+    getArrayObjectShipmentDetail(parsedXmlObject);
+
+  if (success && shipmentDetailArray) {
+    return shipmentDetailArray;
+  }
+
+  return [];
+};
+
+const useParsedObject = ({ content, tabKey }: ParseObject) => {
+  const [currentXmlString, setCurrentXmlString] = useState(content);
+  const [parsedXmlObject, setParsedXmlObject] = useState<any | null>(null);
+  const [isParsing, setIsParsing] = useState<boolean>(false);
+  const [parsingError, setParsingError] = useState<string | null>(null);
+
+  // Efecto para parsear XML cuando la prop 'content' cambia
   useEffect(() => {
-    try {
-      if (currentXmlString) {
-        const { data, error, status } = parseXMLPromise(currentXmlString);
-
-        if (status === 'error') {
-          console.error('Error parsing XML:', error);
-          return;
-        }
-
-        setParsedContentObject(data);
-      } else {
-        setParsedContentObject(INITIAL_STATE.parsedContentObject);
-      }
-    } catch (error) {
-      console.error('Error parsing XML:', error);
-      setParsedContentObject(INITIAL_STATE.parsedContentObject);
+    if (!content) {
+      setParsedXmlObject(null);
+      setParsingError(null);
+      setIsParsing(false);
+      return;
     }
-  }, [currentXmlString]);
+
+    setIsParsing(true);
+    setParsingError(null);
+
+    parseXMLPromise(content)
+      .then(({ status, data, error: parseError }) => {
+        if (status === 'success' && data) {
+          setParsedXmlObject(data);
+        } else {
+          console.error(
+            `[ViewSummary] Error parseando XML para la pestaña ${tabKey}:`,
+            parseError,
+          );
+
+          setParsingError(parseError || 'Falló el parseo del XML');
+          setParsedXmlObject(null);
+        }
+      })
+      .catch((err) => {
+        console.error(
+          `[ViewSummary] Error no manejado durante parseo de XML para la pestaña ${tabKey}:`,
+          err,
+        );
+        setParsingError(
+          err.message || 'Ocurrió un error inesperado durante el parseo.',
+        );
+        setParsedXmlObject(null);
+      })
+      .finally(() => {
+        setIsParsing(false);
+      });
+  }, [content, tabKey]);
 
   useEffect(() => {
-    setCurrentXmlString(initialContentString);
-  }, [initialContentString]);
-
-  // Callback for EditorComponent to update content and modification status
-  const handleEditorContentChange = (newContent: string) => {
-    setCurrentXmlString(newContent);
-    // setFilesModified(true); // setFilesModified(true); // setModifiedTabState(tabKey, { isModified: true });
-    console.log('Editor content changed:', ++counter);
-  };
+    if (currentXmlString !== content) {
+      setCurrentXmlString(content);
+    }
+  }, [content, currentXmlString]);
 
   return {
-    editorView,
-    currentXmlString,
-    parsedContentObject,
-    handleEditorContentChange,
+    parsedXmlObject,
+    isParsing,
+    parsingError,
   };
 };
 
 function ViewSummary({ content, onContentChange, tabKey }: Props) {
-  // Objecto separado del contenido que va hacia los componentes hijos
-  // globalObject almacena { tableContent, dataObject } o un estado de error/vacío
-  const [globalObject, setGlobalObject] = useState({
-    tableContent: [],
-    dataObject: null,
-  });
-
-  const { handleObjectContentChange } = useEditedContent({
-    onContentChange,
-    setGlobalObject,
-    globalObject,
-  });
-
-  useEffect(() => {
-    const initialGlobalObject = createObjectGlobal(content);
-    console.log('useEffect ViewSummary: [content]');
-
-    if (initialGlobalObject) {
-      setGlobalObject(initialGlobalObject);
-    } else {
-      console.error(
-        'ViewSummary Error: Falló la creación del objeto global inicial. El contenido podría ser inválido.',
-      );
-      // Establecer un estado definido de vacío/error para evitar errores posteriores
-      setGlobalObject({ tableContent: [], dataObject: null });
-    }
-  }, [content]);
-
-  console.log('[ViewSummary] Render:', {
+  const { parsedXmlObject, isParsing, parsingError } = useParsedObject({
     content,
-    tableContent: globalObject.tableContent,
-    dataObject: globalObject.dataObject,
     tabKey,
   });
+
+  const { handleTableContentChange } = useEditedContent({
+    onContentChange,
+    parsedXmlObject,
+  });
+  // Memoriza la extracción de datos para la tabla
+  const tableContentForDisplay = useMemo(() => {
+    if (!parsedXmlObject) return [];
+    return extractTableDataFromParsedXML(parsedXmlObject);
+  }, [parsedXmlObject]);
+
+  console.log(`[ViewSummary] Render para la pestaña ${tabKey}:`, {
+    content,
+    tabKey,
+  });
+
+  if (isParsing) {
+    return <div>Cargando datos XML para la tabla...</div>;
+  }
+
+  if (parsingError) {
+    return <div>Error cargando datos XML: {parsingError}</div>;
+  }
+
+  if (!parsedXmlObject) {
+    return <div>No hay contenido XML para mostrar en la tabla.</div>;
+  }
 
   return (
     <div style={{ maxWidth: '700px', marginRight: 'auto', marginLeft: 'auto' }}>
       <TableComponent
-        tableContent={globalObject.tableContent}
-        onContentChange={handleObjectContentChange}
+        tableContent={tableContentForDisplay}
+        onContentChange={handleTableContentChange}
       />
     </div>
   );

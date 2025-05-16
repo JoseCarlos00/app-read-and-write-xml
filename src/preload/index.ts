@@ -66,6 +66,10 @@ const customParseXmlAPI: Xml2jsAPI = {
   // Versión mejorada de parseXML que devuelve una Promise
   async parseXMLPromise(xml) {
     try {
+      if (!xml) {
+        throw new Error('No XML-String provided for parsing.');
+      }
+
       const parserOptions: ParserOptions = {
         explicitArray: false,
       };
@@ -81,6 +85,10 @@ const customParseXmlAPI: Xml2jsAPI = {
 
   buildXML: (jsObject) => {
     try {
+      if (!jsObject) {
+        throw new Error('No JavaScript object provided for building XML.');
+      }
+
       const builderOptions: BuilderOptions = {
         headless: true,
       };
