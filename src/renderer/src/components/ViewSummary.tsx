@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import TableComponent from './Table';
 
 import { ShipmentDetail, RootObject } from '../types/shipmentDetail';
@@ -25,20 +25,22 @@ type ParseObject = {
   tabKey: string;
 };
 
-// const counter = 0;
+let counter = 0;
 
 const useEditedContent = ({ onContentChange, parsedXmlObject }: PropsEdit) => {
-  // callback: () => void
-  const [debounceTimeout, setDebounceTimeout] = useState(null);
+  // Usamos useRef para almacenar el ID del timeout.
+
+  const debounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Limpiar el timeout cuando el componente se desmonte
   useEffect(() => {
     return () => {
-      if (debounceTimeout) {
-        clearTimeout(debounceTimeout);
+      // Limpiamos el timeout si existe cuando el componente se desmonta.
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
       }
     };
-  }, [debounceTimeout]);
+  }, []); // El array de dependencias vacío asegura que esto solo se ejecute al montar y desmontar.
 
   const buildObject = (ojectGlobalToBuild: RootObject) => {
     try {
@@ -59,7 +61,6 @@ const useEditedContent = ({ onContentChange, parsedXmlObject }: PropsEdit) => {
   };
 
   const handleModifiedChange = (content: Array<ShipmentDetail>) => {
-    // 1. Validar globalObject y globalObject.dataObject
     if (!parsedXmlObject) {
       console.error(
         'handleModifiedChange Error: parsedXmlObject es inválido.',
@@ -96,7 +97,6 @@ const useEditedContent = ({ onContentChange, parsedXmlObject }: PropsEdit) => {
     // 4. Verificar que onContentChange sea una función antes de llamarla
     if (typeof onContentChange === 'function') {
       onContentChange(xmlString);
-      console.log('Modificar remoto:');
     } else {
       console.error(
         'handleModifiedChange Error: onContentChange no es una función.',
@@ -106,11 +106,17 @@ const useEditedContent = ({ onContentChange, parsedXmlObject }: PropsEdit) => {
 
   const handleTableContentChange = (newTableContent: Array<ShipmentDetail>) => {
     console.log('[handleObjectContentChange]:', newTableContent);
+    console.log('Modificar en local:', ++counter);
 
-    if (debounceTimeout) clearTimeout(debounceTimeout);
+    // Si ya hay un timeout pendiente, lo limpiamos.
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
 
-    setDebounceTimeout(
-      setTimeout(() => handleModifiedChange(newTableContent), DEBOUNCE_DELAY),
+    // Establecemos un nuevo timeout.
+    debounceTimeoutRef.current = setTimeout(
+      () => handleModifiedChange(newTableContent),
+      DEBOUNCE_DELAY,
     );
   };
 
