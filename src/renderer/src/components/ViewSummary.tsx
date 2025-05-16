@@ -112,8 +112,6 @@ const useEditedContent = ({ onContentChange, globalObject }) => {
 };
 
 const useParsedObject = ({ content: initialContentString, tabKey }) => {
-  const editorView = useViewStore((state) => state.editorView);
-
   const [currentXmlString, setCurrentXmlString] = useState(
     INITIAL_STATE.currentXmlString,
   );
