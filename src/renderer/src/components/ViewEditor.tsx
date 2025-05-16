@@ -3,9 +3,16 @@ import Editor from '@monaco-editor/react';
 
 const DEBOUNCE_DELAY = 500;
 
-function EditorComponent({ content, onContentChange, tabKey }) {
+interface Props {
+  content: string;
+  onContentChange: (newContent: string) => void;
+  tabKey: string;
+}
+
+function EditorComponent({ content, onContentChange, tabKey }: Props) {
   const [editorContent, setEditorContent] = useState(content);
-  const debounceTimeoutRef = useRef(null);
+  const debounceTimeoutRef: React.MutableRefObject<NodeJS.Timeout | null> =
+    useRef(null);
 
   // Sincronizar editorContent si la prop 'content' cambia desde el padre
   useEffect(() => {
@@ -25,7 +32,7 @@ function EditorComponent({ content, onContentChange, tabKey }) {
     };
   }, []);
 
-  const handleEditorChange = (newValue) => {
+  const handleEditorChange = (newValue = '') => {
     setEditorContent(newValue);
 
     // Limpiar el timeout anterior si existe

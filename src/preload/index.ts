@@ -1,7 +1,6 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron';
 import { electronAPI } from '@electron-toolkit/preload';
 import {
-  parseString,
   Builder,
   ParserOptions,
   BuilderOptions,
@@ -23,8 +22,8 @@ interface XmlOperationResult {
  * API para parsear y construir XML.
  */
 interface Xml2jsAPI {
-  parseXML: (xml: string) => XmlOperationResult | null; // Puede ser null debido a la lógica asíncrona mal manejada
-  buildXML: (jsObject: object) => XmlOperationResult | null;
+  parseXMLPromise: (xml: string) => Promise<XmlOperationResult>;
+  buildXML: (jsObject: object) => XmlOperationResult;
 }
 
 /**
@@ -63,28 +62,9 @@ interface CustomIpcRendererAPI {
 // --- Implementación de la API ---
 
 // Custom APIs for renderer
-const customParseXmlAPI = {
-  parseXML: (xml: string): XmlOperationResult | null => {
-    let parserResult: XmlOperationResult | null = null;
-
-    const parserOptions: ParserOptions = {
-      explicitArray: false,
-    };
-
-    parseString(xml, parserOptions, (err: Error | null, result: string) => {
-      if (!err) {
-        parserResult = { status: 'success', data: result };
-      } else {
-        console.error('Error parsing XML:', err);
-        parserResult = { status: 'error', error: err.message };
-      }
-    });
-
-    return parserResult;
-  },
-
+const customParseXmlAPI: Xml2jsAPI = {
   // Versión mejorada de parseXML que devuelve una Promise
-  async parseXMLPromise(xml: string): Promise<XmlOperationResult> {
+  async parseXMLPromise(xml) {
     try {
       const parserOptions: ParserOptions = {
         explicitArray: false,
@@ -92,13 +72,14 @@ const customParseXmlAPI = {
 
       const result = await parseStringPromise(xml, parserOptions);
       return { status: 'success', data: result };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error('Error parsing XML:', err);
-      return { status: 'error', error: err.message };
+      return { status: 'error', error: err?.message };
     }
   },
 
-  buildXML: (jsObject: object): XmlOperationResult => {
+  buildXML: (jsObject) => {
     try {
       const builderOptions: BuilderOptions = {
         headless: true,
@@ -108,6 +89,7 @@ const customParseXmlAPI = {
       const xmlString = builder.buildObject(jsObject);
 
       return { status: 'success', data: xmlString };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error('Error building XML:', err);
       return { status: 'error', error: err.message };

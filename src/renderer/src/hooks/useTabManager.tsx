@@ -15,15 +15,22 @@ function useTabManager() {
 
   const newTabIndex = useRef(0);
 
-  const onChange = (key) => {
+  const onChange = (key: string) => {
     setActiveKey(key);
   };
 
-  const onEdit = (targetKey, action) => {
+  const onEdit = (
+    targetKeyOrEvent: React.MouseEvent | React.KeyboardEvent | string,
+    action: 'add' | 'remove',
+  ) => {
     if (action === 'add') {
       add();
-    } else if (action === 'remove') {
-      remove(targetKey);
+    } else if (
+      action === 'remove' &&
+      typeof targetKeyOrEvent === 'string' &&
+      targetKeyOrEvent
+    ) {
+      remove(targetKeyOrEvent);
     }
   };
 
@@ -42,7 +49,7 @@ function useTabManager() {
   }, [addTab]);
 
   const remove = useCallback(
-    (targetKey) => {
+    (targetKey: string) => {
       let newActiveKeyCandidate = activeKey;
       let lastIndex = -1;
 
@@ -67,7 +74,7 @@ function useTabManager() {
 
   // Eventos de teclado para los Tabs
   useEffect(() => {
-    const handleKeyDown = (e) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       // Ctrl+W or Ctrl+w to close current tab
       if (e.ctrlKey && (e.key === 'W' || e.key === 'w')) {
         e.preventDefault();

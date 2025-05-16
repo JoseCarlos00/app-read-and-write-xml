@@ -5,48 +5,36 @@ import ViewSummary from '../components/ViewSummary';
 import { useTabManagerStore, useViewStore } from '../store/viewStore';
 
 let counter = 0;
-const { parseXML } = window.xml2jsAPI;
 
-function ContentTab({ content: initialContentString, tabKey }) {
+interface Props {
+  content: string;
+  tabKey: string;
+}
+
+const INITIAL_STATE = {
+  currentXmlString: '',
+};
+
+function ContentTab({ content: initialContentString, tabKey }: Props) {
   const editorView = useViewStore((state) => state.editorView);
 
-  const [currentXmlString, setCurrentXmlString] = useState(null);
-  const [parsedContentObject, setParsedContentObject] = useState(null);
+  const [currentXmlString, setCurrentXmlString] = useState(
+    INITIAL_STATE.currentXmlString,
+  );
 
-  const setFilesModified = useTabManagerStore(
-    (state) => state.setFilesModified,
-  );
-  const setModifiedTabState = useTabManagerStore(
-    (state) => state.setModifiedTabState,
-  );
+  // const setFilesModified = useTabManagerStore(
+  //   (state) => state.setFilesModified,
+  // );
+  // const setModifiedTabState = useTabManagerStore(
+  //   (state) => state.setModifiedTabState,
+  // );
 
   useEffect(() => {
     setCurrentXmlString(initialContentString);
   }, [initialContentString]);
 
-  // Effect to parse XML whenever currentXmlString changes
-  useEffect(() => {
-    try {
-      if (currentXmlString) {
-        const { data, error, status } = parseXML(currentXmlString);
-
-        if (status === 'error') {
-          console.error('Error parsing XML:', error);
-          return;
-        }
-
-        setParsedContentObject(data);
-      } else {
-        setParsedContentObject(null);
-      }
-    } catch (error) {
-      console.error('Error parsing XML:', error);
-      setParsedContentObject(null);
-    }
-  }, [currentXmlString]);
-
   // Callback for EditorComponent to update content and modification status
-  const handleEditorContentChange = (newContent) => {
+  const handleEditorContentChange = (newContent: string) => {
     setCurrentXmlString(newContent);
     // setFilesModified(true);
     // setFilesModified(true);
@@ -59,7 +47,6 @@ function ContentTab({ content: initialContentString, tabKey }) {
     tabKey,
     initialContentString,
     currentXmlString,
-    parsedContentObject,
   });
 
   return (
@@ -71,9 +58,9 @@ function ContentTab({ content: initialContentString, tabKey }) {
           tabKey={tabKey}
         />
       )}
-      {editorView === 'summary' && parsedContentObject && (
+      {editorView === 'summary' && (
         <ViewSummary
-          content={parsedContentObject}
+          content={currentXmlString}
           onContentChange={handleEditorContentChange}
           tabKey={tabKey}
         />

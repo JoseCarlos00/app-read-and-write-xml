@@ -4,6 +4,19 @@ import TableComponent from './Table';
 const DEBOUNCE_DELAY = 500;
 const { buildXML } = window.xml2jsAPI;
 
+interface Props {
+  content: string;
+  onContentChange: (newContent: string) => void;
+  tabKey: string;
+}
+
+const INITIAL_STATE = {
+  currentXmlString: '',
+  parsedContentObject: {},
+};
+
+let counter = 0;
+
 const useEditedContent = ({ onContentChange, globalObject }) => {
   const [debounceTimeout, setDebounceTimeout] = useState(null);
 
@@ -98,96 +111,57 @@ const useEditedContent = ({ onContentChange, globalObject }) => {
   return { handleObjectContentChange };
 };
 
-const getObjectGlobal = (baseObject, newDetailsContent) => {
-  try {
-    // Validación básica de la estructura de globalObject
-    if (
-      !baseObject ||
-      !baseObject.WMWROOT ||
-      !baseObject.WMWROOT.WMWDATA ||
-      !baseObject.WMWROOT.WMWDATA[0] ||
-      !baseObject.WMWROOT.WMWDATA[0].Shipments ||
-      !baseObject.WMWROOT.WMWDATA[0].Shipments[0] ||
-      !baseObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment ||
-      !baseObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0] ||
-      !baseObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0].Details ||
-      !baseObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0].Details[0]
-    ) {
-      console.error(
-        'Error: Estructura de globalObject inválida en getObjectGlobal.',
-      );
-      return null; // Indicar fallo
-    }
-    // Agregar al objecto global los cambios de la tabla
-    // baseObject es globalObject.dataObject del estado, que es una copia y se puede mutar aquí.
-    baseObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0].Details[0].ShipmentDetail =
-      newDetailsContent;
+const useParsedObject = ({ content: initialContentString, tabKey }) => {
+  const editorView = useViewStore((state) => state.editorView);
 
-    return baseObject;
-  } catch (error) {
-    console.error(
-      'Error en getObjectGlobal al actualizar ShipmentDetail:',
-      error,
-    );
-    return null; // Indicar fallo
-  }
+  const [currentXmlString, setCurrentXmlString] = useState(
+    INITIAL_STATE.currentXmlString,
+  );
+  const [parsedContentObject, setParsedContentObject] = useState(
+    INITIAL_STATE.parsedContentObject,
+  );
+
+  // Effect to parse XML whenever currentXmlString changes
+  useEffect(() => {
+    try {
+      if (currentXmlString) {
+        const { data, error, status } = parseXMLPromise(currentXmlString);
+
+        if (status === 'error') {
+          console.error('Error parsing XML:', error);
+          return;
+        }
+
+        setParsedContentObject(data);
+      } else {
+        setParsedContentObject(INITIAL_STATE.parsedContentObject);
+      }
+    } catch (error) {
+      console.error('Error parsing XML:', error);
+      setParsedContentObject(INITIAL_STATE.parsedContentObject);
+    }
+  }, [currentXmlString]);
+
+  useEffect(() => {
+    setCurrentXmlString(initialContentString);
+  }, [initialContentString]);
+
+  // Callback for EditorComponent to update content and modification status
+  const handleEditorContentChange = (newContent: string) => {
+    setCurrentXmlString(newContent);
+    // setFilesModified(true); // setFilesModified(true); // setModifiedTabState(tabKey, { isModified: true });
+    console.log('Editor content changed:', ++counter);
+  };
+
+  return {
+    editorView,
+    currentXmlString,
+    parsedContentObject,
+    handleEditorContentChange,
+  };
 };
 
-/**
- * @param {Object} sourceDataObject
- * @returns {Object} { tableContent: shipmentsDetail, dataObject }
- */
-const createObjectGlobal = (sourceDataObject) => {
-  try {
-    // Validación básica de la estructura de sourceDataObject hasta Details[0]
-    if (
-      !sourceDataObject ||
-      !sourceDataObject.WMWROOT ||
-      !sourceDataObject.WMWROOT.WMWDATA ||
-      !sourceDataObject.WMWROOT.WMWDATA[0] ||
-      !sourceDataObject.WMWROOT.WMWDATA[0].Shipments ||
-      !sourceDataObject.WMWROOT.WMWDATA[0].Shipments[0] ||
-      !sourceDataObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment ||
-      !sourceDataObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0] ||
-      !sourceDataObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0].Details ||
-      !sourceDataObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0]
-        .Details[0] ||
-      !sourceDataObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0].Details[0]
-        .ShipmentDetail
-    ) {
-      console.error(
-        'Error: Estructura de sourceDataObject inválida en createObjectGlobal (ruta a Details).',
-      );
-      return null; // Indicar fallo
-    }
-
-    const detailsNodeSource =
-      sourceDataObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0].Details[0];
-
-    // Extraer tableContent. Si ShipmentDetail falta o no es un array, usar [].
-    // Esto maneja el caso donde buildXML omite la etiqueta para arrays vacíos.
-    const currentShipmentDetailsSource = Array.isArray(
-      detailsNodeSource.ShipmentDetail,
-    )
-      ? detailsNodeSource.ShipmentDetail
-      : [];
-
-    const tableContent = [...currentShipmentDetailsSource];
-
-    const templateDataObject = structuredClone(sourceDataObject);
-
-    // Asegurar que ShipmentDetail sea un array vacío en el objeto de estado (template).
-    templateDataObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0].Details[0].ShipmentDetail =
-      [];
-
-    return { tableContent, dataObject: templateDataObject };
-  } catch (error) {
-    console.error('Error en createObjectGlobal:', error);
-    return null; // Indicar fallo
-  }
-};
-
-function ViewSummary({ content, onContentChange, tabKey }) {
+function ViewSummary({ content, onContentChange, tabKey }: Props) {
   // Objecto separado del contenido que va hacia los componentes hijos
   // globalObject almacena { tableContent, dataObject } o un estado de error/vacío
   const [globalObject, setGlobalObject] = useState({
@@ -216,7 +190,7 @@ function ViewSummary({ content, onContentChange, tabKey }) {
     }
   }, [content]);
 
-  console.log('[ViewSummary]', {
+  console.log('[ViewSummary] Render:', {
     content,
     tableContent: globalObject.tableContent,
     dataObject: globalObject.dataObject,

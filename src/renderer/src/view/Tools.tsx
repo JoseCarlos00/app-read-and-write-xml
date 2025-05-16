@@ -1,4 +1,4 @@
-import { Button, Flex, Radio, Divider } from 'antd';
+import { Button, Flex, Radio, Divider, RadioChangeEvent } from 'antd';
 import {
   ApartmentOutlined,
   FundProjectionScreenOutlined,
@@ -15,7 +15,7 @@ const Tools = () => {
 
   console.log('Tools');
 
-  const handleViewChange = (e) => {
+  const handleViewChange = (e: RadioChangeEvent) => {
     setEditorView(e.target.value);
   };
 
