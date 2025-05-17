@@ -1,59 +1,75 @@
 import { useEffect, useState } from 'react';
-import { Popconfirm, Table, Button, Flex } from 'antd';
+import { Popconfirm, Table, Button, Flex, TableColumnsType } from 'antd';
 
 import './Table.css';
 import { useEditeContent } from '../hooks/editeContentTable';
+import { ShipmentDetail as ShipmentDetailType } from '../types/shipmentDetail';
+
+// Interface para la estructura de datos que maneja la tabla internamente
+interface TableRowData {
+  key: string;
+  sku: string;
+  qty: string;
+  lineNumber: string;
+  erpOrder: string;
+}
 
 class ShipmentDetail {
-  constructor({ erpOrder, sku, qty, lineNumber }) {
+  ErpOrderLineNum: string;
+  SKU: string;
+  TotalQuantity: string;
+  ErpOrder: string;
+  example: ShipmentDetailType;
+
+  constructor({ erpOrder, sku, qty, lineNumber }: TableRowData) {
     this.ErpOrderLineNum = lineNumber;
     this.SKU = sku;
     this.TotalQuantity = qty;
     this.ErpOrder = erpOrder;
 
     this.example = {
-      Action: ['Save'],
-      ErpOrder: ['3405-32523'],
-      ErpOrderLineNum: ['646840'],
-      RequestedQty: ['36'],
-      SKU: [
-        {
-          Company: ['FM'],
-          Item: ['1025-3645-32152'],
-          Quantity: ['36'],
-          QuantityUm: ['PZ'],
-        },
-      ],
-      TotalQuantity: ['36'],
+      Action: 'Save',
+      ErpOrder: '3405-32523',
+      ErpOrderLineNum: '646840',
+      RequestedQty: '36',
+      SKU: {
+        Company: 'FM',
+        Item: '1025-3645-32152',
+        Quantity: '36',
+        QuantityUm: 'PZ',
+      },
+      TotalQuantity: '36',
     };
   }
 
-  createDetail() {
+  createDetail(): ShipmentDetailType {
     return {
-      Action: ['Save'],
-      ErpOrder: [this.ErpOrder],
-      ErpOrderLineNum: [this.ErpOrderLineNum],
-      RequestedQty: [this.TotalQuantity],
-      SKU: [
-        {
-          Company: ['FM'],
-          Item: [this.SKU],
-          Quantity: [this.TotalQuantity],
-          QuantityUm: ['PZ'],
-        },
-      ],
-      TotalQuantity: [this.TotalQuantity],
+      Action: 'Save',
+      ErpOrder: this.ErpOrder,
+      ErpOrderLineNum: this.ErpOrderLineNum,
+      RequestedQty: this.TotalQuantity,
+      SKU: {
+        Company: 'FM',
+        Item: this.SKU,
+        Quantity: this.TotalQuantity,
+        QuantityUm: 'PZ',
+      },
+      TotalQuantity: this.TotalQuantity,
     };
   }
 
-  static getNewArrayObject(shipmentDetails) {
+  static getNewArrayObject(
+    shipmentDetails: TableRowData[],
+  ): ShipmentDetailType[] {
     return shipmentDetails.map((detail) => {
       return new ShipmentDetail(detail).createDetail();
     });
   }
 }
 
-const getContentBodyTable = (shipmentDetails) => {
+const getContentBodyTable = (
+  shipmentDetails: ShipmentDetailType[] | undefined,
+): TableRowData[] => {
   try {
     if (
       !shipmentDetails ||
@@ -65,8 +81,8 @@ const getContentBodyTable = (shipmentDetails) => {
 
     const content = shipmentDetails
       .map((detail) => {
-        const ErpOrderLineNum = detail?.ErpOrderLineNum;
-        const SKUData = detail?.SKU;
+        const ErpOrderLineNum = detail.ErpOrderLineNum;
+        const SKU = detail?.SKU;
         const TotalQuantity = detail?.TotalQuantity;
         const ErpOrder = detail?.ErpOrder;
 
@@ -81,14 +97,7 @@ const getContentBodyTable = (shipmentDetails) => {
 
         const key = ErpOrderLineNum.toString();
 
-        const skuValue =
-          SKUData &&
-          Array.isArray(SKUData) &&
-          SKUData.length > 0 &&
-          SKUData[0] &&
-          typeof SKUData[0].Item !== 'undefined'
-            ? SKUData[0].Item.toString()
-            : 'N/A'; // Valor por defecto o placeholder para SKU
+        const skuValue = SKU ? SKU.Item.toString() : 'N/A'; // Valor por defecto o placeholder para SKU
 
         const quantityValue =
           typeof TotalQuantity !== 'undefined' ? TotalQuantity.toString() : '0'; // Valor por defecto
@@ -118,25 +127,33 @@ const getContentBodyTable = (shipmentDetails) => {
   }
 };
 
-const TableComponent = ({ tableContent, onContentChange }) => {
+interface TableComponentProps {
+  tableContent: ShipmentDetailType[] | undefined;
+  onContentChange: (newContent: ShipmentDetailType[]) => void;
+}
+
+const TableComponent = ({
+  tableContent,
+  onContentChange,
+}: TableComponentProps) => {
   const { EditableRow, EditableCell } = useEditeContent();
 
   // Inicializar dataSource como un array vacío
-  const [dataSource, setDataSource] = useState([]);
-  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [dataSource, setDataSource] = useState<TableRowData[]>([]);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<Array<string>>([]);
 
   useEffect(() => {
     const tbodyContent = getContentBodyTable(tableContent);
     setDataSource(tbodyContent);
-  }, [tableContent]); // setDataSource no necesita ser una dependencia
+  }, [tableContent]);
 
-  const handleOnContentChange = (newTableContent) => {
+  const handleOnContentChange = (newTableContent: TableRowData[]) => {
     const newArrayObject = ShipmentDetail.getNewArrayObject(newTableContent);
     console.log('newArrayObject', newArrayObject);
     onContentChange(newArrayObject);
   };
 
-  const handleDelete = (key) => {
+  const handleDelete = (key: string) => {
     const newData = dataSource.filter((item) => item.key !== key);
     setDataSource(newData);
     handleOnContentChange(newData);
@@ -161,7 +178,7 @@ const TableComponent = ({ tableContent, onContentChange }) => {
     {
       title: 'Actions',
       dataIndex: 'operation',
-      render: (_, record) =>
+      render: (_: any, record: TableRowData) =>
         dataSource && dataSource.length >= 1 ? (
           <Popconfirm
             title={`Eliminar el item: ${record.sku}?`}
@@ -175,7 +192,7 @@ const TableComponent = ({ tableContent, onContentChange }) => {
     },
   ];
 
-  const handleSave = (row) => {
+  const handleSave = (row: TableRowData) => {
     const newData = [...dataSource];
     const index = newData.findIndex((item) => row.key === item.key);
     const item = newData[index];
@@ -200,7 +217,7 @@ const TableComponent = ({ tableContent, onContentChange }) => {
 
     return {
       ...col,
-      onCell: (record) => ({
+      onCell: (record: TableRowData) => ({
         record,
         editable: col.editable,
         dataIndex: col.dataIndex,
@@ -210,8 +227,12 @@ const TableComponent = ({ tableContent, onContentChange }) => {
     };
   });
 
-  const onSelectChange = (newSelectedRowKeys) => {
-    console.log('selectedRowKeys changed: ', newSelectedRowKeys);
+  const onSelectChange = (newSelectedRowKeys: Array<string>) => {
+    console.log(
+      'selectedRowKeys changed: ',
+      typeof newSelectedRowKeys,
+      newSelectedRowKeys,
+    );
     setSelectedRowKeys(newSelectedRowKeys);
   };
 
@@ -230,6 +251,13 @@ const TableComponent = ({ tableContent, onContentChange }) => {
     handleOnContentChange(newData);
     setSelectedRowKeys([]);
   };
+
+  console.log('[TableComponent]:', {
+    tableContent,
+    dataSource,
+    selectedRowKeys,
+    hasSelected,
+  });
 
   return (
     <Flex gap="middle" vertical className="container-principal">

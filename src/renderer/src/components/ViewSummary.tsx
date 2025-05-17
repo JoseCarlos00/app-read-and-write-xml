@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import TableComponent from './Table';
 
 import { ShipmentDetail, RootObject } from '../types/shipmentDetail';
@@ -8,27 +8,29 @@ import {
 } from '../utils/objectGlobal';
 
 const DEBOUNCE_DELAY = 500;
-const { buildXML, parseXMLPromise } = window.xml2jsAPI;
+const { buildXML } = window.xml2jsAPI;
 
 interface Props {
-  content: string;
-  onContentChange: (newContent: string) => void;
+  xmlStringContent: string;
+  parsedXmlObject: RootObject | null;
+  isParsingXml: boolean;
+  xmlParsingError: string | null;
   tabKey: string;
+  onContentChange: (newContent: string) => void;
 }
 interface PropsEdit {
   onContentChange: (newContent: string) => void;
   parsedXmlObject: RootObject | null;
 }
 
-type ParseObject = {
-  content: string;
-  tabKey: string;
-};
-
 let counter = 0;
 
 const useEditedContent = ({ onContentChange, parsedXmlObject }: PropsEdit) => {
   // Usamos useRef para almacenar el ID del timeout.
+  console.log('useEditedContent:', {
+    onContentChange,
+    parsedXmlObject,
+  });
 
   const debounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -140,107 +142,69 @@ const extractTableDataFromParsedXML = (
   return [];
 };
 
-const useParsedObject = ({ content, tabKey }: ParseObject) => {
-  const [currentXmlString, setCurrentXmlString] = useState(content);
-  const [parsedXmlObject, setParsedXmlObject] = useState<any | null>(null);
-  const [isParsing, setIsParsing] = useState<boolean>(false);
-  const [parsingError, setParsingError] = useState<string | null>(null);
-
-  // Efecto para parsear XML cuando la prop 'content' cambia
-  useEffect(() => {
-    if (!content) {
-      setParsedXmlObject(null);
-      setParsingError(null);
-      setIsParsing(false);
-      return;
-    }
-
-    setIsParsing(true);
-    setParsingError(null);
-
-    parseXMLPromise(content)
-      .then(({ status, data, error: parseError }) => {
-        if (status === 'success' && data) {
-          setParsedXmlObject(data);
-        } else {
-          console.error(
-            `[ViewSummary] Error parseando XML para la pestaña ${tabKey}:`,
-            parseError,
-          );
-
-          setParsingError(parseError || 'Falló el parseo del XML');
-          setParsedXmlObject(null);
-        }
-      })
-      .catch((err) => {
-        console.error(
-          `[ViewSummary] Error no manejado durante parseo de XML para la pestaña ${tabKey}:`,
-          err,
-        );
-        setParsingError(
-          err.message || 'Ocurrió un error inesperado durante el parseo.',
-        );
-        setParsedXmlObject(null);
-      })
-      .finally(() => {
-        setIsParsing(false);
-      });
-  }, [content, tabKey]);
-
-  useEffect(() => {
-    if (currentXmlString !== content) {
-      setCurrentXmlString(content);
-    }
-  }, [content, currentXmlString]);
-
-  return {
-    parsedXmlObject,
-    isParsing,
-    parsingError,
-  };
-};
-
-function ViewSummary({ content, onContentChange, tabKey }: Props) {
-  const { parsedXmlObject, isParsing, parsingError } = useParsedObject({
-    content,
-    tabKey,
-  });
-
+function ViewSummary({
+  xmlStringContent,
+  parsedXmlObject: receivedParsedXmlObject,
+  isParsingXml,
+  xmlParsingError,
+  onContentChange,
+  tabKey,
+}: Props) {
   const { handleTableContentChange } = useEditedContent({
     onContentChange,
-    parsedXmlObject,
+    parsedXmlObject: receivedParsedXmlObject,
   });
+
   // Memoriza la extracción de datos para la tabla
   const tableContentForDisplay = useMemo(() => {
-    if (!parsedXmlObject) return [];
-    return extractTableDataFromParsedXML(parsedXmlObject);
-  }, [parsedXmlObject]);
+    console.log('extractTableDataFromParsedXML:', {
+      receivedParsedXmlObject,
+    });
+
+    if (!receivedParsedXmlObject) return [];
+    return extractTableDataFromParsedXML(receivedParsedXmlObject);
+  }, [receivedParsedXmlObject]);
 
   console.log(`[ViewSummary] Render para la pestaña ${tabKey}:`, {
-    content,
+    xmlStringContent,
     tabKey,
+    parsedXmlObject: receivedParsedXmlObject,
+    isParsing: isParsingXml,
+    parsingError: xmlParsingError,
+    tableContentForDisplay,
   });
 
-  if (isParsing) {
+  if (isParsingXml) {
+    console.log('isParsingXml');
+
     return <div>Cargando datos XML para la tabla...</div>;
   }
 
-  if (parsingError) {
-    return <div>Error cargando datos XML: {parsingError}</div>;
+  if (xmlParsingError) {
+    console.log('xmlParsingError');
+
+    return <div>Error cargando datos XML: {xmlParsingError}</div>;
   }
 
-  if (!parsedXmlObject) {
-    return <div>No hay contenido XML para mostrar en la tabla.</div>;
-  }
+  if (receivedParsedXmlObject) {
+    console.log('receivedParsedXmlObject');
 
-  return (
-    <div style={{ maxWidth: '700px', marginRight: 'auto', marginLeft: 'auto' }}>
-      <TableComponent
-        tableContent={tableContentForDisplay}
-        onContentChange={handleTableContentChange}
-      />
-    </div>
-  );
+    if (!xmlStringContent) {
+      console.log('!xmlStringContent');
+
+      return <div>No hay contenido XML para mostrar en la tabla.</div>;
+    }
+
+    return (
+      <div
+        style={{ maxWidth: '700px', marginRight: 'auto', marginLeft: 'auto' }}
+      >
+        <TableComponent
+          tableContent={tableContentForDisplay}
+          onContentChange={handleTableContentChange}
+        />
+      </div>
+    );
+  }
 }
-
 export default ViewSummary;

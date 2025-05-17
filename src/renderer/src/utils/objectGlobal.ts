@@ -26,10 +26,7 @@ export const updateParsedXMLWithTableData: getParsedGlobalType = (
 ) => {
   try {
     // Validación básica de la estructura de globalObject
-    if (
-      !originalParsedXML?.WMWROOT?.WMWDATA[0]?.Shipments[0]?.Shipment[0]
-        ?.Details[0]
-    ) {
+    if (!originalParsedXML?.WMWROOT?.WMWDATA?.Shipments?.Shipment?.Details) {
       throw new Error(
         'Estructura de globalObject inválida en getObjectGlobal.',
       );
@@ -61,19 +58,24 @@ export const updateParsedXMLWithTableData: getParsedGlobalType = (
 export const getArrayObjectShipmentDetail: getNewArrayObject = (
   parsedXmlObject,
 ) => {
+  console.log('getArrayObjectShipmentDetail', {
+    parsedXmlObject,
+    'WMWROOT?.WMWDATA[0]?.Shipments[0]':
+      parsedXmlObject?.WMWROOT?.WMWDATA?.Shipments?.Shipment?.Details,
+  });
+
   try {
     // Validación básica de la estructura de parsedXmlObject
-    if (
-      !parsedXmlObject?.WMWROOT?.WMWDATA[0]?.Shipments[0]?.Shipment[0]
-        ?.Details[0].ShipmentDetail
-    ) {
+    if (!parsedXmlObject?.WMWROOT?.WMWDATA?.Shipments?.Shipment?.Details) {
       throw new Error(
         'Estructura de parsedXmlObject inválida en getArrayObjectShipmentDetail.',
       );
     }
 
     const detailsNodeSource =
-      parsedXmlObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0].Details[0];
+      parsedXmlObject?.WMWROOT?.WMWDATA?.Shipments?.Shipment?.Details;
+    // const detailsNodeSource =
+    //   parsedXmlObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0].Details[0];
 
     const currentShipmentDetailsSource = Array.isArray(
       detailsNodeSource.ShipmentDetail,

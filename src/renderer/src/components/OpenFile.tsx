@@ -1,11 +1,23 @@
 import { useEffect, useCallback } from 'react';
 
-function OpenFile() {
-  const createTab = useCallback((filePath) => {
-    const nameFile = filePath.split('\\').pop(); // Muestra solo el nombre del archivo
+import { useTabManagerStore } from '../store/viewStore';
 
-    console.log({ filePath, nameFile });
-  }, []);
+function OpenFile() {
+  const addTab = useTabManagerStore((state) => state.addTab);
+  const createTab = useCallback(
+    (filePath, content) => {
+      const nameFile = filePath.split('\\').pop(); // Muestra solo el nombre del archivo
+
+      console.log({ filePath, nameFile });
+
+      addTab({
+        label: nameFile,
+        content,
+        key: filePath,
+      });
+    },
+    [addTab],
+  );
 
   const handleOpenFile = useCallback(async () => {
     const newFiles = await window.electronAPI.openFile(); // Usa la API expuesta
@@ -13,7 +25,7 @@ function OpenFile() {
 
     if (newFiles && newFiles.length > 0) {
       newFiles.forEach((file) => {
-        createTab(file.path);
+        createTab(file.path, file.content);
       });
     }
   }, [createTab]);
