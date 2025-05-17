@@ -1,6 +1,10 @@
 import { app, shell, BrowserWindow, Menu, ipcMain, dialog } from 'electron';
 import { join } from 'path';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
+import installExtension, {
+  REACT_DEVELOPER_TOOLS,
+} from 'electron-devtools-installer';
+
 import icon from '../../resources/icon.png?asset';
 
 import fs from 'node:fs/promises';
@@ -51,6 +55,13 @@ function createWindow() {
 
   if (isDev) {
     mainWindow.webContents.openDevTools();
+
+    // Install React DevTools only in development
+    installExtension(REACT_DEVELOPER_TOOLS, {
+      loadExtensionOptions: { allowFileAccess: true },
+    })
+      .then((name) => console.log(`Added Extension:  ${name}`))
+      .catch((err) => console.log('An error occurred: ', err));
   }
 }
 
