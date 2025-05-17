@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+import ContentTab from '../view/ContentTab';
+
 // Define la interfaz para el estado del ViewStore
 interface ViewStoreState {
   editorView: 'summary' | 'tree';
@@ -30,13 +32,13 @@ const useViewStore = create<ViewStore>()(
 interface Tab {
   key: string;
   label: string;
-  children: React.ReactNode;
+  content: string;
 }
 
 // Define la interfaz para el estado del TabManagerStore
 interface TabManagerStoreState {
   tabState: Tab[];
-  activeKey: string | '';
+  activeKey: string | null;
   areFilesModified: boolean;
   modifiedTabs: {
     [key: string]: {
@@ -62,17 +64,27 @@ type TabManagerStore = TabManagerStoreState & TabManagerStoreActions;
 // Define el StateCreator con los tipos correctos
 const useTabManagerStore = create<TabManagerStore>()((set, get) => ({
   tabState: [],
-  activeKey: '',
+  activeKey: null,
   areFilesModified: false,
   modifiedTabs: {},
 
-  setActiveKey: (key) => set({ activeKey: key }),
+  setActiveKey: (key) => {
+    if (key) {
+      set({ activeKey: key });
+    }
+  },
 
-  addTab: (tab: Tab) =>
+  addTab: (tab: Tab) => {
+    const newTab = {
+      ...tab,
+      children: <ContentTab content={tab.content} tabKey={tab.key} />,
+    };
+
     set((state) => ({
-      tabState: [...state.tabState, tab],
+      tabState: [...state.tabState, newTab],
       activeKey: tab.key,
-    })),
+    }));
+  },
 
   removeTab: (key: string, newKey: string | null) =>
     set((state) => ({
@@ -82,14 +94,17 @@ const useTabManagerStore = create<TabManagerStore>()((set, get) => ({
 
   setFilesModified: (modified: boolean) => set({ areFilesModified: modified }),
 
-  setModifiedTabState: (tabKey: string) =>
+  setModifiedTabState: (tabKey: string) => {
+    if (!tabKey) {
+      return;
+    }
     set((state) => ({
       modifiedTabs: {
         ...state.modifiedTabs,
-        [tabKey]: { ...state.modifiedTabs[tabKey] },
+        [tabKey]: { isModified: true },
       },
-    })),
-
+    }));
+  },
   removeModifiedTabState: (tabKey: string) =>
     set((state) => {
       const newModifiedTabs = { ...state.modifiedTabs };
