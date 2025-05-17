@@ -252,12 +252,12 @@ const TableComponent = ({
     setSelectedRowKeys([]);
   };
 
-  console.log('[TableComponent]:', {
-    tableContent,
-    dataSource,
-    selectedRowKeys,
-    hasSelected,
-  });
+  // console.log('[TableComponent]:', {
+  //   tableContent,
+  //   dataSource,
+  //   selectedRowKeys,
+  //   hasSelected,
+  // });
 
   return (
     <Flex gap="middle" vertical className="container-principal">

@@ -13,7 +13,7 @@ const Tools = () => {
   const setEditorView = useViewStore((state) => state.setEditorView);
   const saveFile = useTabManagerStore((state) => state.saveFile);
 
-  console.log('Tools');
+  console.log('Tools', { selectedView });
 
   const handleViewChange = (e: RadioChangeEvent) => {
     setEditorView(e.target.value);
