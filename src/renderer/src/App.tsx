@@ -6,7 +6,7 @@ import { InitialData } from './hooks/addInitialData';
 function App() {
   return (
     <>
-      <InitialData />
+      {/* <InitialData /> */}
       <OpenFile />
       <Tools />
       <TabsManager />
