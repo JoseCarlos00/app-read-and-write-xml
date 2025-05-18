@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Popconfirm, Table, Button, Flex, TableColumnsType } from 'antd';
+import { Popconfirm, Table, Button, Flex } from 'antd';
 
 import './Table.css';
 import { useEditeContent } from '../hooks/editeContentTable';
@@ -251,13 +251,6 @@ const TableComponent = ({
     handleOnContentChange(newData);
     setSelectedRowKeys([]);
   };
-
-  // console.log('[TableComponent]:', {
-  //   tableContent,
-  //   dataSource,
-  //   selectedRowKeys,
-  //   hasSelected,
-  // });
 
   return (
     <Flex gap="middle" vertical className="container-principal">
