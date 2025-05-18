@@ -2,26 +2,31 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 import ContentTab from '../view/ContentTab';
+import { VIEWS_SUPPORTED } from '../consts';
+import { type ViewsSupported } from '../types/types';
 
 // Define la interfaz para el estado del ViewStore
 interface ViewStoreState {
-  editorView: 'summary' | 'tree';
+  editorView: ViewsSupported;
 }
 
 // Define la interfaz para las acciones del ViewStore
 interface ViewStoreActions {
-  setEditorView: (view: ViewType) => void;
+  setEditorView: (view: ViewsSupported) => void;
 }
 
 // Combina el estado y las acciones para el tipo completo del ViewStore
 type ViewStore = ViewStoreState & ViewStoreActions;
-type ViewType = ViewStoreState['editorView'];
+
+const defaultView = VIEWS_SUPPORTED.TREE;
+
+// Define el StateCreator con los tipos correctos
 
 const useViewStore = create<ViewStore>()(
   persist(
     (set) => ({
-      editorView: 'summary',
-      setEditorView: (view: ViewType) => set({ editorView: view }),
+      editorView: defaultView,
+      setEditorView: (view: ViewsSupported) => set({ editorView: view }),
     }),
     {
       name: 'view-storage',
