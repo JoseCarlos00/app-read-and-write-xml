@@ -2,5 +2,6 @@
   "semi": true,
   "tabWidth": 2,
   "editorconfig": true,
-  "singleQuote": true
+  "singleQuote": true,
+  "printWidth": 200
 }

@@ -31,5 +31,6 @@
   ],
   "prettier.endOfLine": "lf",
   "editor.unfoldOnClickAfterEndOfLine": true,
-  "prettier.semi": true
+  "prettier.semi": true,
+  "files.eol": "\n"
 }

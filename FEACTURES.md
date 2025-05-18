@@ -40,6 +40,6 @@
 **Organizar ideas**
 
 - Mostrar alertas antes de cerrar las tab.
-- Poder volver abrir una pestaña despues de cerrarse.
+- Poder volver abrir una pestaña después de cerrarse.
 - Soportar abrir multiples archivos .
 - Tener un limite de pestañas (Tab) abiertos.
