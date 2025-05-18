@@ -14,6 +14,14 @@ createRoot(document.getElementById('root')).render(
   <ConfigProvider
     theme={{
       algorithm: theme.darkAlgorithm,
+      components: {
+        Tabs: {
+          cardBg: '#040404',
+          itemColor: '#dddddd',
+          itemActiveColor: '#d0cfcf',
+          itemSelectedColor: '#dddddd',
+        },
+      },
     }}
   >
     <App />

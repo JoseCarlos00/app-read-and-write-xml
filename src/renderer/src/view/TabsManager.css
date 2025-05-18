@@ -13,6 +13,10 @@
 }
 
 .custom-tabs-manager {
+  height: 100%;
+  width: 100%;
+  position: relative;
+
   .tab-border-bottom-container,
   .tab-border-top-container {
     display: none;
@@ -23,8 +27,35 @@
   }
 
   .ant-tabs-tabpane {
-    min-height: 100vh;
-    width: 100vw;
+    width: 100%;
+  }
+
+  .ant-tabs-nav {
+    background-color: #121212;
+  }
+
+  &.view-summary {
+    .ant-tabs-nav {
+      align-items: center;
+      flex: 0 0 auto;
+    }
+
+    .ant-tabs-content-holder {
+      flex: 1 1 0%;
+      overflow-y: auto;
+    }
+
+    .ant-tabs-tab.ant-tabs-tab-active {
+      background-color: #0d1117 !important;
+    }
+  }
+
+  &.view-tree .ant-tabs-nav {
+    margin: 0 !important;
+
+    .ant-tabs-tab.ant-tabs-tab-active {
+      background-color: #1e1e1e !important;
+    }
   }
 }
 

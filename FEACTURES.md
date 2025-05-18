@@ -43,3 +43,5 @@
 - Poder volver abrir una pestaña después de cerrarse.
 - Soportar abrir multiples archivos .
 - Tener un limite de pestañas (Tab) abiertos.
+
+## AGREGAR NOTIFICACIONES O ALERTAR DE USUARIO
