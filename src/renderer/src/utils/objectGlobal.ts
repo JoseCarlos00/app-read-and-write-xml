@@ -12,7 +12,7 @@ type getParsedGlobalType = (
 };
 
 type getNewArrayObject = (parsedXmlObject: RootObject) => {
-  shipmentDetailArray?: ArrayContentShipmentDetail;
+  shipmentDetailArray?: ArrayContentShipmentDetail | object;
   error?: string;
   success: boolean;
 };
@@ -79,10 +79,6 @@ export const getArrayObjectShipmentDetail: getNewArrayObject = (
 
     const detailsNodeSource =
       parsedXmlObject?.WMWROOT?.WMWDATA?.Shipments?.Shipment?.Details;
-    // const detailsNodeSource =
-    //   parsedXmlObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0].Details[0];
-
-    console.log('detailsNodeSource', detailsNodeSource);
 
     let currentShipmentDetailsSource: ArrayContentShipmentDetail | object = [];
 

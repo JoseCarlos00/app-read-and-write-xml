@@ -120,6 +120,7 @@ const useEditedContent = ({ onContentChange, parsedXmlObject }: PropsEdit) => {
         DEBOUNCE_DELAY,
       );
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [parsedXmlObject],
   );
 
@@ -158,8 +159,6 @@ function ViewSummary({
   }
 
   if (parsedXmlObject) {
-    console.log('receivedParsedXmlObject');
-
     return (
       <div
         style={{ maxWidth: '700px', marginRight: 'auto', marginLeft: 'auto' }}
