@@ -31,7 +31,6 @@ function ContentTab({ content: initialContentString, tabKey }: Props) {
   const [xmlParsingError, setXmlParsingError] = useState<string | null>(null);
 
   const lastParsedXml = useRef<string | null>(null);
-  const isChangeXmlText: boolean = lastParsedXml.current === currentXmlString;
 
   useEffect(() => {
     setCurrentXmlString(initialContentString);
@@ -112,14 +111,13 @@ function ContentTab({ content: initialContentString, tabKey }: Props) {
     return extractTableDataFromParsedXML(parsedXmlObject);
   }, [parsedXmlObject, tabKey]); // tabKey es dependencia si extractTableDataFromParsedXML lo usa, sino solo parsedXmlObject
 
-  console.log('[ContentTab]:', {
-    editorView,
-    currentXmlString,
-    parsedXmlObject,
-    lastParsedXml: lastParsedXml.current,
-    isChangeXmlText,
-    tableContentForDisplay,
-  });
+  // console.log('[ContentTab]:', {
+  //   editorView,
+  //   currentXmlString,
+  //   parsedXmlObject,
+  //   lastParsedXml: lastParsedXml.current,
+  //   tableContentForDisplay,
+  // });
 
   return (
     <>
@@ -127,7 +125,6 @@ function ContentTab({ content: initialContentString, tabKey }: Props) {
         <EditorComponent
           xmlStringContent={currentXmlString}
           onContentChange={handleContentChange}
-          tabKey={tabKey}
         />
       )}
       {editorView === 'summary' && (
@@ -137,7 +134,6 @@ function ContentTab({ content: initialContentString, tabKey }: Props) {
           isParsingXml={isParsingXml}
           xmlParsingError={xmlParsingError}
           onContentChange={handleContentChange}
-          tabKey={tabKey}
         />
       )}
     </>

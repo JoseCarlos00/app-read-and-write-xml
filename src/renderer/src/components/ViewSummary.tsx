@@ -14,7 +14,6 @@ interface Props {
   tableContentForDisplay: Array<ShipmentDetail>;
   xmlParsingError: string | null;
   isParsingXml: boolean;
-  tabKey: string;
   onContentChange: (newContent: string) => void;
 }
 
@@ -132,7 +131,6 @@ function ViewSummary({
   tableContentForDisplay,
   xmlParsingError,
   onContentChange,
-  tabKey,
   isParsingXml,
 }: Props) {
   const { handleTableContentChange } = useEditedContent({
@@ -140,13 +138,12 @@ function ViewSummary({
     parsedXmlObject,
   });
 
-  console.log(`[ViewSummary] Render para la pestaña ${tabKey}:`, {
-    tabKey,
-    parsedXmlObject,
-    isParsingXml,
-    xmlParsingError,
-    tableContentForDisplay,
-  });
+  // console.log(`[ViewSummary] Render para la pestaña ${tabKey}:`, {
+  //   parsedXmlObject,
+  //   isParsingXml,
+  //   xmlParsingError,
+  //   tableContentForDisplay,
+  // });
 
   if (isParsingXml) {
     console.log('isParsingXml');

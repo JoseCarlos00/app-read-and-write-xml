@@ -6,10 +6,9 @@ const DEBOUNCE_DELAY = 500;
 interface Props {
   xmlStringContent: string;
   onContentChange: (newContent: string) => void;
-  tabKey: string;
 }
 
-function EditorComponent({ xmlStringContent, onContentChange, tabKey }: Props) {
+function EditorComponent({ xmlStringContent, onContentChange }: Props) {
   const [editorContent, setEditorContent] = useState(xmlStringContent);
   const debounceTimeoutRef: React.MutableRefObject<NodeJS.Timeout | null> =
     useRef(null);
@@ -28,7 +27,6 @@ function EditorComponent({ xmlStringContent, onContentChange, tabKey }: Props) {
     console.log('[EditorComponent] Render:', {
       propContent: xmlStringContent,
       stateEditorContent: editorContent,
-      tabKey,
     });
 
     return () => {
