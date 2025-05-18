@@ -3,5 +3,5 @@
   "tabWidth": 2,
   "editorconfig": true,
   "singleQuote": true,
-  "printWidth": 200
+  "endOfLine": "auto"
 }

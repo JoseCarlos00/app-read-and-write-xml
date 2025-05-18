@@ -70,6 +70,7 @@ export default tseslint.config(
       ],
       // You can add/override more rules here, e.g.:
       // '@typescript-eslint/no-explicit-any': 'off',
+      'prettier/prettier': ['error', { endOfLine: 'auto' }],
     },
   },
 
