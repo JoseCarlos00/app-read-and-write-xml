@@ -5,6 +5,7 @@ import { TableRowData as Item } from '../../types/types';
 
 type FormInstance<T> = GetRef<typeof Form<T>>;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const EditableContext = React.createContext<FormInstance<any> | null>(null);
 
 interface EditableRowProps {
@@ -12,6 +13,7 @@ interface EditableRowProps {
 }
 
 export const useEditContentTable = () => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const EditableRow: React.FC<EditableRowProps> = ({ index, ...props }) => {
     const [form] = Form.useForm();
     return (

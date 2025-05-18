@@ -2,6 +2,10 @@
 
 ## Render
 
+- Mostrar alerta cuando hay cambios **sin guardar** antes de cerrar.
+
+---
+
 > ### _View SUMMARY_
 
 - [-] Agregar **opción** para cambiar de **WAREHOUSE** en shipment y receipt.

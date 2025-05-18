@@ -50,6 +50,15 @@ const TableComponent = ({
       dataIndex: 'sku',
       width: '30%',
       editable: true,
+      sorter: (a: TableRowData, b: TableRowData) => {
+        if (a.sku < b.sku) {
+          return -1;
+        }
+        if (a.sku > b.sku) {
+          return 1;
+        }
+        return 0;
+      },
     },
     {
       title: 'Quantity',
@@ -112,11 +121,6 @@ const TableComponent = ({
   });
 
   const onSelectChange = (newSelectedRowKeys: Array<Key>) => {
-    console.log(
-      'selectedRowKeys changed: ',
-      typeof newSelectedRowKeys,
-      newSelectedRowKeys,
-    );
     setSelectedRowKeys(newSelectedRowKeys);
   };
 
@@ -131,22 +135,35 @@ const TableComponent = ({
     const newData = dataSource.filter(
       (item) => !selectedRowKeys.includes(item.key),
     );
+
     setDataSource(newData);
     handleOnContentChange(newData);
     setSelectedRowKeys([]);
   };
 
+  const paginationCOnfig: TableProps<TableRowData>['pagination'] = {
+    position: ['bottomRight'],
+    showSizeChanger: true,
+    showTotal: (total: number, range: [number, number]) => {
+      return `Mostrado ${range[0]}-${range[1]}`;
+    },
+  };
+
   return (
     <Flex gap="middle" vertical className="container-principal">
-      <Flex align="center" gap="middle">
-        <Button
-          type="primary"
-          onClick={handleDeleteSelected}
-          disabled={!hasSelected}
-        >
-          Eliminar Seleccionados
-        </Button>
-        {hasSelected ? `Selected ${selectedRowKeys.length} items` : null}
+      <Flex align="center" justify="space-between">
+        <Flex align="center" gap="middle">
+          <Button
+            type="primary"
+            onClick={handleDeleteSelected}
+            disabled={!hasSelected}
+          >
+            Eliminar Seleccionados
+          </Button>
+          {hasSelected ? `Selected ${selectedRowKeys.length} items` : null}
+        </Flex>
+
+        <label>Total: {dataSource.length}</label>
       </Flex>
 
       <Table
@@ -157,7 +174,7 @@ const TableComponent = ({
         columns={columns as ColumnTypes}
         size="small"
         rowSelection={rowSelection}
-        pagination={{ pageSize: 10, current: 1 }}
+        pagination={paginationCOnfig}
       />
     </Flex>
   );
