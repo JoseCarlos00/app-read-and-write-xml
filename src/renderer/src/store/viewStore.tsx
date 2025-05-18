@@ -43,7 +43,7 @@ interface Tab {
 // Define la interfaz para el estado del TabManagerStore
 interface TabManagerStoreState {
   tabState: Tab[];
-  activeKey: string | null;
+  activeKey: ActiveKeyType;
   areFilesModified: boolean;
   modifiedTabs: {
     [key: string]: {
@@ -52,11 +52,13 @@ interface TabManagerStoreState {
   };
 }
 
+type ActiveKeyType = string | undefined;
+
 // Define la interfaz para las acciones del TabManagerStore
 interface TabManagerStoreActions {
-  setActiveKey: (key: string | null) => void;
+  setActiveKey: (key: string) => void;
   addTab: (tab: Tab) => void;
-  removeTab: (key: string, newKey: string | null) => void;
+  removeTab: (key: string, newKey: string) => void;
   setFilesModified: (modified: boolean) => void;
   setModifiedTabState: (tabKey: string) => void;
   removeModifiedTabState: (tabKey: string) => void;
@@ -69,7 +71,7 @@ type TabManagerStore = TabManagerStoreState & TabManagerStoreActions;
 // Define el StateCreator con los tipos correctos
 const useTabManagerStore = create<TabManagerStore>()((set, get) => ({
   tabState: [],
-  activeKey: null,
+  activeKey: undefined,
   areFilesModified: false,
   modifiedTabs: {},
 
@@ -91,7 +93,7 @@ const useTabManagerStore = create<TabManagerStore>()((set, get) => ({
     }));
   },
 
-  removeTab: (key: string, newKey: string | null) =>
+  removeTab: (key, newKey) =>
     set((state) => ({
       tabState: state.tabState.filter((tab: Tab) => tab.key !== key),
       activeKey: newKey,
@@ -99,7 +101,7 @@ const useTabManagerStore = create<TabManagerStore>()((set, get) => ({
 
   setFilesModified: (modified: boolean) => set({ areFilesModified: modified }),
 
-  setModifiedTabState: (tabKey: string) => {
+  setModifiedTabState: (tabKey) => {
     if (!tabKey) {
       return;
     }
@@ -110,7 +112,7 @@ const useTabManagerStore = create<TabManagerStore>()((set, get) => ({
       },
     }));
   },
-  removeModifiedTabState: (tabKey: string) =>
+  removeModifiedTabState: (tabKey) =>
     set((state) => {
       const newModifiedTabs = { ...state.modifiedTabs };
       delete newModifiedTabs[tabKey];
