@@ -1,7 +1,8 @@
 import { app, shell, BrowserWindow, Menu, ipcMain, dialog } from 'electron';
 import { join } from 'path';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
-import installExtension, {
+import {
+  installExtension,
   REACT_DEVELOPER_TOOLS,
 } from 'electron-devtools-installer';
 

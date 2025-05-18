@@ -34,12 +34,17 @@ export const updateParsedXMLWithTableData: getParsedGlobalType = (
 
     // Agregar al objecto global los cambios de la tabla
     // originalParsedXML.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0].Details[0].ShipmentDetail = modifiedTableData;
+    originalParsedXML.WMWROOT.WMWDATA.Shipments.Shipment.Details.ShipmentDetail =
+      modifiedTableData;
+
+    console.log('ojectGlobalToBuild', {
+      originalParsedXML,
+      modifiedTableData,
+      ojectGlobalToBuild: originalParsedXML,
+    });
 
     return {
-      ojectGlobalToBuild: {
-        ...originalParsedXML,
-        ShipmentDetail: modifiedTableData,
-      },
+      ojectGlobalToBuild: originalParsedXML,
       success: true,
     };
   } catch (error) {
@@ -77,15 +82,23 @@ export const getArrayObjectShipmentDetail: getNewArrayObject = (
     // const detailsNodeSource =
     //   parsedXmlObject.WMWROOT.WMWDATA[0].Shipments[0].Shipment[0].Details[0];
 
-    const currentShipmentDetailsSource = Array.isArray(
-      detailsNodeSource.ShipmentDetail,
-    )
-      ? detailsNodeSource.ShipmentDetail
-      : [];
+    console.log('detailsNodeSource', detailsNodeSource);
 
-    const shipmentDetailArray = [...currentShipmentDetailsSource];
+    let currentShipmentDetailsSource: ArrayContentShipmentDetail | object = [];
 
-    return { shipmentDetailArray, success: true };
+    if (
+      Array.isArray(detailsNodeSource.ShipmentDetail) &&
+      detailsNodeSource.ShipmentDetail.length > 0
+    ) {
+      currentShipmentDetailsSource = detailsNodeSource.ShipmentDetail;
+    } else if (
+      typeof detailsNodeSource.ShipmentDetail === 'object' &&
+      detailsNodeSource.ShipmentDetail !== null
+    ) {
+      currentShipmentDetailsSource = [{ ...detailsNodeSource.ShipmentDetail }];
+    }
+
+    return { shipmentDetailArray: currentShipmentDetailsSource, success: true };
   } catch (error) {
     console.error(
       'Error en getArrayObjectShipmentDetail al actualizar ShipmentDetail:',

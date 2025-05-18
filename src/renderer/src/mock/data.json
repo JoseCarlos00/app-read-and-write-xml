@@ -1,309 +1,199 @@
 {
-  "WMWROOT": {
-    "$": {
-      "xmlns": "http://www.manh.com/ILSNET/Interface",
-      "xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
-      "xsi:schemaLocation": "http://www.manh.com/ILSNET/Interface schema.xsd"
+  "ShipmentDetail": [
+    {
+      "Action": "Save",
+      "ErpOrder": "3405-32523",
+      "ErpOrderLineNum": "646840",
+      "RequestedQty": "36",
+      "SKU": {
+        "Company": "FM",
+        "Item": "1025-3645-32152",
+        "Quantity": "36",
+        "QuantityUm": "PZ"
+      },
+      "TotalQuantity": "36"
     },
-    "WMWDATA": [
-      {
-        "Shipments": [
-          {
-            "Shipment": [
-              {
-                "Action": ["Save"],
-                "UserDef6": ["CAMIONETA FM"],
-                "UserDef8": ["3405"],
-                "AllocateComplete": ["N"],
-                "Comments": [
-                  {
-                    "Comment": [
-                      {
-                        "CommentType": ["Comentario1"],
-                        "Text": ["ATN. MARTIN GUERRERO ALEMAN"]
-                      }
-                    ]
-                  }
-                ],
-                "ConsolidationAllowed": ["Y"],
-                "Customer": [
-                  {
-                    "Carrier": ["Camioneta FM"],
-                    "CarrierService": ["Camioneta FM"],
-                    "Company": ["FM"],
-                    "CustomerAddress": [
-                      {
-                        "Name": ["Mty-Citadel"]
-                      }
-                    ],
-                    "Customer": ["Mty-Citadel"],
-                    "CustomerCategories": [
-                      {
-                        "Category1": ["TDFOR"],
-                        "Category10": ["105"],
-                        "Category2": ["STG CITADEL"],
-                        "Category8": ["N"]
-                      }
-                    ],
-                    "ShipTo": ["Mty-Citadel"],
-                    "ShipToAddress": [
-                      {
-                        "Address1": ["Romulo Garza #410, Int. Big-Box 4"],
-                        "Address2": ["La Fe"],
-                        "Address3": ["Sn.Nicolas Garza"],
-                        "City": ["Nicolas Garza"],
-                        "Country": ["MX"],
-                        "Name": ["MARTIN GUERRERO ALEMÁN"],
-                        "PostalCode": ["66477"],
-                        "State": ["NLE"]
-                      }
-                    ]
-                  }
-                ],
-                "CustomerPO": ["32523"],
-                "ErpOrder": ["3405-T-111-32523"],
-                "OrderDate": ["2025-04-24T20:21:36"],
-                "OrderType": ["TDFOR"],
-                "Priority": ["111"],
-                "ShipmentId": ["3405-T-111-32523"],
-                "UserDef13": ["--"],
-                "Warehouse": ["Mariano"],
-                "Details": [
-                  {
-                    "ShipmentDetail": [
-                      {
-                        "Action": ["Save"],
-                        "ErpOrder": ["3405-32523"],
-                        "ErpOrderLineNum": ["646840"],
-                        "RequestedQty": ["36"],
-                        "SKU": [
-                          {
-                            "Company": ["FM"],
-                            "Item": ["1025-3645-32152"],
-                            "Quantity": ["36"],
-                            "QuantityUm": ["PZ"]
-                          }
-                        ],
-                        "TotalQuantity": ["36"]
-                      },
-                      {
-                        "Action": ["Save"],
-                        "ErpOrder": ["3405-32523"],
-                        "ErpOrderLineNum": ["646841"],
-                        "RequestedQty": ["12"],
-                        "SKU": [
-                          {
-                            "Company": ["FM"],
-                            "Item": ["1190-10004-30531"],
-                            "Quantity": ["12"],
-                            "QuantityUm": ["PZ"]
-                          }
-                        ],
-                        "TotalQuantity": ["12"]
-                      },
-                      {
-                        "Action": ["Save"],
-                        "ErpOrder": ["3405-32523"],
-                        "ErpOrderLineNum": ["646845"],
-                        "RequestedQty": ["12"],
-                        "SKU": [
-                          {
-                            "Company": ["FM"],
-                            "Item": ["1290-9905-32901"],
-                            "Quantity": ["12"],
-                            "QuantityUm": ["PZ"]
-                          }
-                        ],
-                        "TotalQuantity": ["12"]
-                      },
-                      {
-                        "Action": ["Save"],
-                        "ErpOrder": ["3405-32523"],
-                        "ErpOrderLineNum": ["646842"],
-                        "RequestedQty": ["12"],
-                        "SKU": [
-                          {
-                            "Company": ["FM"],
-                            "Item": ["1290-9905-32878"],
-                            "Quantity": ["12"],
-                            "QuantityUm": ["PZ"]
-                          }
-                        ],
-                        "TotalQuantity": ["12"]
-                      },
-                      {
-                        "Action": ["Save"],
-                        "ErpOrder": ["3405-32523"],
-                        "ErpOrderLineNum": ["646844"],
-                        "RequestedQty": ["12"],
-                        "SKU": [
-                          {
-                            "Company": ["FM"],
-                            "Item": ["1290-9905-32899"],
-                            "Quantity": ["12"],
-                            "QuantityUm": ["PZ"]
-                          }
-                        ],
-                        "TotalQuantity": ["12"]
-                      },
-                      {
-                        "Action": ["Save"],
-                        "ErpOrder": ["3405-32523"],
-                        "ErpOrderLineNum": ["646843"],
-                        "RequestedQty": ["12"],
-                        "SKU": [
-                          {
-                            "Company": ["FM"],
-                            "Item": ["1290-9905-32905"],
-                            "Quantity": ["12"],
-                            "QuantityUm": ["PZ"]
-                          }
-                        ],
-                        "TotalQuantity": ["12"]
-                      },
-                      {
-                        "Action": ["Save"],
-                        "ErpOrder": ["3405-32523"],
-                        "ErpOrderLineNum": ["646846"],
-                        "RequestedQty": ["20"],
-                        "SKU": [
-                          {
-                            "Company": ["FM"],
-                            "Item": ["1330-8219-1969"],
-                            "Quantity": ["20"],
-                            "QuantityUm": ["PZ"]
-                          }
-                        ],
-                        "TotalQuantity": ["20"]
-                      },
-                      {
-                        "Action": ["Save"],
-                        "ErpOrder": ["3405-32523"],
-                        "ErpOrderLineNum": ["646847"],
-                        "RequestedQty": ["12"],
-                        "SKU": [
-                          {
-                            "Company": ["FM"],
-                            "Item": ["1574-2555-5835"],
-                            "Quantity": ["12"],
-                            "QuantityUm": ["PZ"]
-                          }
-                        ],
-                        "TotalQuantity": ["12"]
-                      },
-                      {
-                        "Action": ["Save"],
-                        "ErpOrder": ["3405-32523"],
-                        "ErpOrderLineNum": ["646848"],
-                        "RequestedQty": ["10"],
-                        "SKU": [
-                          {
-                            "Company": ["FM"],
-                            "Item": ["1605-616-17147"],
-                            "Quantity": ["10"],
-                            "QuantityUm": ["PZ"]
-                          }
-                        ],
-                        "TotalQuantity": ["10"]
-                      },
-                      {
-                        "Action": ["Save"],
-                        "ErpOrder": ["3405-32523"],
-                        "ErpOrderLineNum": ["646850"],
-                        "RequestedQty": ["10"],
-                        "SKU": [
-                          {
-                            "Company": ["FM"],
-                            "Item": ["1637-3373-31500"],
-                            "Quantity": ["10"],
-                            "QuantityUm": ["PZ"]
-                          }
-                        ],
-                        "TotalQuantity": ["10"]
-                      },
-                      {
-                        "Action": ["Save"],
-                        "ErpOrder": ["3405-32523"],
-                        "ErpOrderLineNum": ["646849"],
-                        "RequestedQty": ["10"],
-                        "SKU": [
-                          {
-                            "Company": ["FM"],
-                            "Item": ["1637-3373-32513"],
-                            "Quantity": ["10"],
-                            "QuantityUm": ["PZ"]
-                          }
-                        ],
-                        "TotalQuantity": ["10"]
-                      },
-                      {
-                        "Action": ["Save"],
-                        "ErpOrder": ["3405-32523"],
-                        "ErpOrderLineNum": ["646855"],
-                        "RequestedQty": ["15"],
-                        "SKU": [
-                          {
-                            "Company": ["FM"],
-                            "Item": ["1706-3711-6098"],
-                            "Quantity": ["15"],
-                            "QuantityUm": ["PZ"]
-                          }
-                        ],
-                        "TotalQuantity": ["15"]
-                      },
-                      {
-                        "Action": ["Save"],
-                        "ErpOrder": ["3405-32523"],
-                        "ErpOrderLineNum": ["646853"],
-                        "RequestedQty": ["15"],
-                        "SKU": [
-                          {
-                            "Company": ["FM"],
-                            "Item": ["1706-3711-31551"],
-                            "Quantity": ["15"],
-                            "QuantityUm": ["PZ"]
-                          }
-                        ],
-                        "TotalQuantity": ["15"]
-                      },
-                      {
-                        "Action": ["Save"],
-                        "ErpOrder": ["3405-32523"],
-                        "ErpOrderLineNum": ["646854"],
-                        "RequestedQty": ["15"],
-                        "SKU": [
-                          {
-                            "Company": ["FM"],
-                            "Item": ["1706-3711-31542"],
-                            "Quantity": ["15"],
-                            "QuantityUm": ["PZ"]
-                          }
-                        ],
-                        "TotalQuantity": ["15"]
-                      },
-                      {
-                        "Action": ["Save"],
-                        "ErpOrder": ["3405-32523"],
-                        "ErpOrderLineNum": ["646851"],
-                        "RequestedQty": ["15"],
-                        "SKU": [
-                          {
-                            "Company": ["FM"],
-                            "Item": ["1706-3711-6167"],
-                            "Quantity": ["15"],
-                            "QuantityUm": ["PZ"]
-                          }
-                        ],
-                        "TotalQuantity": ["15"]
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  }
+    {
+      "Action": "Save",
+      "ErpOrder": "3405-32523",
+      "ErpOrderLineNum": "646841",
+      "RequestedQty": "12",
+      "SKU": {
+        "Company": "FM",
+        "Item": "1190-10004-30531",
+        "Quantity": "12",
+        "QuantityUm": "PZ"
+      },
+      "TotalQuantity": "12"
+    },
+    {
+      "Action": "Save",
+      "ErpOrder": "3405-32523",
+      "ErpOrderLineNum": "646845",
+      "RequestedQty": "12",
+      "SKU": {
+        "Company": "FM",
+        "Item": "1290-9905-32901",
+        "Quantity": "12",
+        "QuantityUm": "PZ"
+      },
+      "TotalQuantity": "12"
+    },
+    {
+      "Action": "Save",
+      "ErpOrder": "3405-32523",
+      "ErpOrderLineNum": "646842",
+      "RequestedQty": "12",
+      "SKU": {
+        "Company": "FM",
+        "Item": "1290-9905-32878",
+        "Quantity": "12",
+        "QuantityUm": "PZ"
+      },
+      "TotalQuantity": "12"
+    },
+    {
+      "Action": "Save",
+      "ErpOrder": "3405-32523",
+      "ErpOrderLineNum": "646844",
+      "RequestedQty": "12",
+      "SKU": {
+        "Company": "FM",
+        "Item": "1290-9905-32899",
+        "Quantity": "12",
+        "QuantityUm": "PZ"
+      },
+      "TotalQuantity": "12"
+    },
+    {
+      "Action": "Save",
+      "ErpOrder": "3405-32523",
+      "ErpOrderLineNum": "646843",
+      "RequestedQty": "12",
+      "SKU": {
+        "Company": "FM",
+        "Item": "1290-9905-32905",
+        "Quantity": "12",
+        "QuantityUm": "PZ"
+      },
+      "TotalQuantity": "12"
+    },
+    {
+      "Action": "Save",
+      "ErpOrder": "3405-32523",
+      "ErpOrderLineNum": "646846",
+      "RequestedQty": "20",
+      "SKU": {
+        "Company": "FM",
+        "Item": "1330-8219-1969",
+        "Quantity": "20",
+        "QuantityUm": "PZ"
+      },
+      "TotalQuantity": "20"
+    },
+    {
+      "Action": "Save",
+      "ErpOrder": "3405-32523",
+      "ErpOrderLineNum": "646847",
+      "RequestedQty": "12",
+      "SKU": {
+        "Company": "FM",
+        "Item": "1574-2555-5835",
+        "Quantity": "12",
+        "QuantityUm": "PZ"
+      },
+      "TotalQuantity": "12"
+    },
+    {
+      "Action": "Save",
+      "ErpOrder": "3405-32523",
+      "ErpOrderLineNum": "646848",
+      "RequestedQty": "10",
+      "SKU": {
+        "Company": "FM",
+        "Item": "1605-616-17147",
+        "Quantity": "10",
+        "QuantityUm": "PZ"
+      },
+      "TotalQuantity": "10"
+    },
+    {
+      "Action": "Save",
+      "ErpOrder": "3405-32523",
+      "ErpOrderLineNum": "646850",
+      "RequestedQty": "10",
+      "SKU": {
+        "Company": "FM",
+        "Item": "1637-3373-31500",
+        "Quantity": "10",
+        "QuantityUm": "PZ"
+      },
+      "TotalQuantity": "10"
+    },
+    {
+      "Action": "Save",
+      "ErpOrder": "3405-32523",
+      "ErpOrderLineNum": "646849",
+      "RequestedQty": "10",
+      "SKU": {
+        "Company": "FM",
+        "Item": "1637-3373-32513",
+        "Quantity": "10",
+        "QuantityUm": "PZ"
+      },
+      "TotalQuantity": "10"
+    },
+    {
+      "Action": "Save",
+      "ErpOrder": "3405-32523",
+      "ErpOrderLineNum": "646855",
+      "RequestedQty": "15",
+      "SKU": {
+        "Company": "FM",
+        "Item": "1706-3711-6098",
+        "Quantity": "15",
+        "QuantityUm": "PZ"
+      },
+      "TotalQuantity": "15"
+    },
+    {
+      "Action": "Save",
+      "ErpOrder": "3405-32523",
+      "ErpOrderLineNum": "646853",
+      "RequestedQty": "15",
+      "SKU": {
+        "Company": "FM",
+        "Item": "1706-3711-31551",
+        "Quantity": "15",
+        "QuantityUm": "PZ"
+      },
+      "TotalQuantity": "15"
+    },
+    {
+      "Action": "Save",
+      "ErpOrder": "3405-32523",
+      "ErpOrderLineNum": "646854",
+      "RequestedQty": "15",
+      "SKU": {
+        "Company": "FM",
+        "Item": "1706-3711-31542",
+        "Quantity": "15",
+        "QuantityUm": "PZ"
+      },
+      "TotalQuantity": "15"
+    },
+    {
+      "Action": "Save",
+      "ErpOrder": "3405-32523",
+      "ErpOrderLineNum": "646851",
+      "RequestedQty": "15",
+      "SKU": {
+        "Company": "FM",
+        "Item": "1706-3711-6167",
+        "Quantity": "15",
+        "QuantityUm": "PZ"
+      },
+      "TotalQuantity": "15"
+    }
+  ]
 }
