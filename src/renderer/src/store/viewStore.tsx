@@ -45,12 +45,14 @@ interface TabManagerStoreState {
   tabState: Tab[];
   activeKey: ActiveKeyType;
   areFilesModified: boolean;
-  modifiedTabs: {
-    [key: string]: {
-      isModified: boolean;
-    };
-  };
+  modifiedTabs: ModifiedTabsType;
 }
+
+type ModifiedTabsType = {
+  [key: string]: {
+    isModified: boolean;
+  };
+};
 
 type ActiveKeyType = string | undefined;
 
@@ -58,9 +60,10 @@ type ActiveKeyType = string | undefined;
 interface TabManagerStoreActions {
   setActiveKey: (key: string) => void;
   addTab: (tab: Tab) => void;
-  removeTab: (key: string, newKey: string) => void;
+  removeTab: (key: string, newKey: ActiveKeyType) => void;
   setFilesModified: (modified: boolean) => void;
   setModifiedTabState: (tabKey: string) => void;
+  setAreFilesModified: () => void;
   removeModifiedTabState: (tabKey: string) => void;
   saveFile: () => void;
 }
@@ -99,7 +102,7 @@ const useTabManagerStore = create<TabManagerStore>()((set, get) => ({
       activeKey: newKey,
     })),
 
-  setFilesModified: (modified: boolean) => set({ areFilesModified: modified }),
+  setFilesModified: (modified) => set({ areFilesModified: modified }),
 
   setModifiedTabState: (tabKey) => {
     if (!tabKey) {
@@ -110,14 +113,38 @@ const useTabManagerStore = create<TabManagerStore>()((set, get) => ({
         ...state.modifiedTabs,
         [tabKey]: { isModified: true },
       },
+      areFilesModified: true,
     }));
   },
-  removeModifiedTabState: (tabKey) =>
+
+  setAreFilesModified: () => {
+    const modifiedTabsLength = Object.keys(get().modifiedTabs).length;
+    if (modifiedTabsLength === 0) {
+      set({ areFilesModified: false });
+      return;
+    }
+
+    set({ areFilesModified: true });
+  },
+
+  removeModifiedTabState: (tabKey) => {
+    if (!tabKey) {
+      return;
+    }
+
     set((state) => {
       const newModifiedTabs = { ...state.modifiedTabs };
       delete newModifiedTabs[tabKey];
-      return { modifiedTabs: newModifiedTabs };
-    }),
+
+      // Calcula el nuevo estado de areFilesModified basado en newModifiedTabs
+      const areFilesNowModified = Object.keys(newModifiedTabs).length > 0;
+
+      return {
+        modifiedTabs: newModifiedTabs,
+        areFilesModified: areFilesNowModified,
+      };
+    });
+  },
 
   saveFile: () => {
     const activeKey = get().activeKey;

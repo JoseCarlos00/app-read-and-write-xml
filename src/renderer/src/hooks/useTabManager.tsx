@@ -87,7 +87,7 @@ function useTabManager() {
         newActiveKeyCandidate =
           lastIndex >= 0 ? newPanes[lastIndex].key : newPanes[0].key;
       } else if (newPanes.length === 0) {
-        newActiveKeyCandidate = null;
+        newActiveKeyCandidate = undefined;
       }
 
       removeTabStore(targetKey, newActiveKeyCandidate);

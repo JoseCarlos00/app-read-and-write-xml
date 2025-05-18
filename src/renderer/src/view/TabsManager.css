@@ -43,6 +43,8 @@
     .ant-tabs-content-holder {
       flex: 1 1 0%;
       overflow-y: auto;
+
+      scrollbar-width: none;
     }
 
     .ant-tabs-tab.ant-tabs-tab-active {

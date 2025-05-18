@@ -17,12 +17,9 @@ interface Props {
 function ContentTab({ content: initialContentString, tabKey }: Props) {
   const editorView = useViewStore((state) => state.editorView);
 
-  // const setFilesModified = useTabManagerStore(
-  //   (state) => state.setFilesModified,
-  // );
-  // const setModifiedTabState = useTabManagerStore(
-  //   (state) => state.setModifiedTabState,
-  // );
+  const setModifiedTabState = useTabManagerStore(
+    (state) => state.setModifiedTabState,
+  );
 
   const [currentXmlString, setCurrentXmlString] =
     useState<string>(initialContentString);
@@ -93,7 +90,7 @@ function ContentTab({ content: initialContentString, tabKey }: Props) {
   const handleContentChange = (newContent: string) => {
     if (newContent !== currentXmlString) {
       setCurrentXmlString(newContent);
-      // setModifiedTabState(tabKey);
+      setModifiedTabState(tabKey);
       console.log(
         '[ContentTab] Content changed, tab marked as modified:',
         tabKey,

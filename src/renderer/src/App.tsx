@@ -30,7 +30,7 @@ function App() {
         >
           <Tools />
         </Header>
-        <Content style={{ flex: 1, overflowY: 'auto' }}>
+        <Content style={{ flex: 1 }}>
           <TabsManager />
         </Content>
       </Layout>

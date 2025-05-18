@@ -36,6 +36,7 @@ function EditorComponent({ xmlStringContent, onContentChange, tabKey }: Props) {
         clearTimeout(debounceTimeoutRef.current);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleEditorChange = (newValue = '') => {
@@ -48,7 +49,9 @@ function EditorComponent({ xmlStringContent, onContentChange, tabKey }: Props) {
 
     // Configurar el nuevo timeout. Actualizar la ref no causa un re-render.
     debounceTimeoutRef.current = setTimeout(() => {
-      onContentChange(newValue);
+      if (editorContent !== newValue) {
+        onContentChange(newValue);
+      }
     }, DEBOUNCE_DELAY);
   };
 
