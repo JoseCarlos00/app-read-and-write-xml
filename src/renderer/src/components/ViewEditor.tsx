@@ -4,13 +4,13 @@ import Editor from '@monaco-editor/react';
 const DEBOUNCE_DELAY = 500;
 
 interface Props {
-  content: string;
+  xmlStringContent: string;
   onContentChange: (newContent: string) => void;
   tabKey: string;
 }
 
-function EditorComponent({ content, onContentChange, tabKey }: Props) {
-  const [editorContent, setEditorContent] = useState(content);
+function EditorComponent({ xmlStringContent, onContentChange, tabKey }: Props) {
+  const [editorContent, setEditorContent] = useState(xmlStringContent);
   const debounceTimeoutRef: React.MutableRefObject<NodeJS.Timeout | null> =
     useRef(null);
 
@@ -18,13 +18,19 @@ function EditorComponent({ content, onContentChange, tabKey }: Props) {
   useEffect(() => {
     // Solo actualizar si el contenido de la prop es realmente diferente
     // al contenido actual del editor para evitar bucles o renders innecesarios.
-    if (content !== editorContent) {
-      setEditorContent(content);
+    if (xmlStringContent !== editorContent) {
+      setEditorContent(xmlStringContent);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [content]); // Este efecto se ejecuta cuando la prop 'content' cambia
+  }, [xmlStringContent]); // Este efecto se ejecuta cuando la prop 'content' cambia
 
   useEffect(() => {
+    console.log('[EditorComponent] Render:', {
+      propContent: xmlStringContent,
+      stateEditorContent: editorContent,
+      tabKey,
+    });
+
     return () => {
       if (debounceTimeoutRef.current) {
         clearTimeout(debounceTimeoutRef.current);
@@ -45,12 +51,6 @@ function EditorComponent({ content, onContentChange, tabKey }: Props) {
       onContentChange(newValue);
     }, DEBOUNCE_DELAY);
   };
-
-  console.log('[EditorComponent] Render:', {
-    propContent: content,
-    stateEditorContent: editorContent,
-    tabKey,
-  });
 
   return (
     <>

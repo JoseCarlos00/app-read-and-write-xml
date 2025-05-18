@@ -1,9 +1,37 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { EditFilled, CloseOutlined } from '@ant-design/icons';
 
-import ContentTab from '../view/ContentTab';
-
 import { useTabManagerStore } from '../store/viewStore';
+
+const contentTab = (key: string) => `<?xml version="1.0" encoding="utf-8"?>
+<WMWROOT xmlns=""
+  xmlns:xsi="" xsi:schemaLocation="">
+  <WMWDATA>
+    <Shipments>
+      <Shipment>
+        <ErpOrder>3405-T-111-32523</ErpOrder>
+        <Warehouse>Mariano</Warehouse>
+        <Hello>Content of new Tab ${key}</Hello>
+        <Details>
+          <ShipmentDetail>
+            <Action>Save</Action>
+            <ErpOrder>3405-32523</ErpOrder>
+            <ErpOrderLineNum>646840</ErpOrderLineNum>
+            <RequestedQty>36</RequestedQty>
+            <SKU>
+              <Company>FM</Company>
+              <Item>1025-3645-32152</Item>
+              <Quantity>36</Quantity>
+              <QuantityUm>PZ</QuantityUm>
+            </SKU>
+            <TotalQuantity>36</TotalQuantity>
+          </ShipmentDetail>
+        </Details>
+      </Shipment>
+    </Shipments>
+  </WMWDATA>
+</WMWROOT>
+`;
 
 function useTabManager() {
   const tabState = useTabManagerStore((state) => state.tabState);
@@ -35,16 +63,11 @@ function useTabManager() {
   };
 
   const add = useCallback(() => {
-    const newActiveKey = `newTab${newTabIndex.current++}`;
+    const newActiveKey = `newTab ${newTabIndex.current++}`;
     addTab({
-      label: 'New Tab',
-      children: (
-        <ContentTab
-          content={`<Hello>Content of new Tab ${newActiveKey}</Hello>`}
-          tabKey={newActiveKey}
-        />
-      ),
+      label: 'New Tab ' + newTabIndex.current,
       key: newActiveKey,
+      content: contentTab(newActiveKey),
     });
   }, [addTab]);
 

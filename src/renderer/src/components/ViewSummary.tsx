@@ -1,37 +1,30 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import TableComponent from './Table';
 
 import { ShipmentDetail, RootObject } from '../types/shipmentDetail';
-import {
-  getArrayObjectShipmentDetail,
-  updateParsedXMLWithTableData,
-} from '../utils/objectGlobal';
+import { updateParsedXMLWithTableData } from '../utils/objectGlobal';
 
 const DEBOUNCE_DELAY = 500;
 const { buildXML } = window.xml2jsAPI;
 
+let counter = 0;
+
 interface Props {
-  xmlStringContent: string;
   parsedXmlObject: RootObject | null;
-  isParsingXml: boolean;
+  tableContentForDisplay: Array<ShipmentDetail>;
   xmlParsingError: string | null;
+  isParsingXml: boolean;
   tabKey: string;
   onContentChange: (newContent: string) => void;
 }
+
 interface PropsEdit {
   onContentChange: (newContent: string) => void;
   parsedXmlObject: RootObject | null;
 }
 
-let counter = 0;
-
 const useEditedContent = ({ onContentChange, parsedXmlObject }: PropsEdit) => {
   // Usamos useRef para almacenar el ID del timeout.
-  console.log('useEditedContent:', {
-    onContentChange,
-    parsedXmlObject,
-  });
-
   const debounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Limpiar el timeout cuando el componente se desmonte
@@ -65,7 +58,7 @@ const useEditedContent = ({ onContentChange, parsedXmlObject }: PropsEdit) => {
   const handleModifiedChange = (content: Array<ShipmentDetail>) => {
     if (!parsedXmlObject) {
       console.error(
-        'handleModifiedChange Error: parsedXmlObject es inválido.',
+        'handleModifiedChange Error: currentParsedXmlObject es inválido.',
         parsedXmlObject,
       );
       // Aquí podrías revertir actualizaciones optimistas de UI o notificar al usuario
@@ -76,6 +69,12 @@ const useEditedContent = ({ onContentChange, parsedXmlObject }: PropsEdit) => {
       parsedXmlObject,
       content,
     );
+
+    console.log('[handleModifiedChange]:', {
+      ojectGlobalToBuild,
+      success,
+      error,
+    });
 
     if (!success || !ojectGlobalToBuild) {
       console.error(
@@ -106,71 +105,46 @@ const useEditedContent = ({ onContentChange, parsedXmlObject }: PropsEdit) => {
     }
   };
 
-  const handleTableContentChange = (newTableContent: Array<ShipmentDetail>) => {
-    console.log('[handleObjectContentChange]:', newTableContent);
-    console.log('Modificar en local:', ++counter);
+  const handleTableContentChange = useCallback(
+    (newTableContent: Array<ShipmentDetail>) => {
+      console.log('[handleObjectContentChange]:', newTableContent);
+      console.log('Modificar en local:', ++counter);
 
-    // Si ya hay un timeout pendiente, lo limpiamos.
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current);
-    }
+      // Si ya hay un timeout pendiente, lo limpiamos.
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
 
-    // Establecemos un nuevo timeout.
-    debounceTimeoutRef.current = setTimeout(
-      () => handleModifiedChange(newTableContent),
-      DEBOUNCE_DELAY,
-    );
-  };
+      // Establecemos un nuevo timeout.
+      debounceTimeoutRef.current = setTimeout(
+        () => handleModifiedChange(newTableContent),
+        DEBOUNCE_DELAY,
+      );
+    },
+    [parsedXmlObject],
+  );
 
   return { handleTableContentChange };
 };
 
-const extractTableDataFromParsedXML = (
-  parsedXmlObject: RootObject,
-): Array<ShipmentDetail> => {
-  if (!parsedXmlObject) {
-    return [];
-  }
-
-  const { success, shipmentDetailArray } =
-    getArrayObjectShipmentDetail(parsedXmlObject);
-
-  if (success && shipmentDetailArray) {
-    return shipmentDetailArray;
-  }
-
-  return [];
-};
-
 function ViewSummary({
-  xmlStringContent,
-  parsedXmlObject: receivedParsedXmlObject,
-  isParsingXml,
+  parsedXmlObject,
+  tableContentForDisplay,
   xmlParsingError,
   onContentChange,
   tabKey,
+  isParsingXml,
 }: Props) {
   const { handleTableContentChange } = useEditedContent({
     onContentChange,
-    parsedXmlObject: receivedParsedXmlObject,
+    parsedXmlObject,
   });
 
-  // Memoriza la extracción de datos para la tabla
-  const tableContentForDisplay = useMemo(() => {
-    console.log('extractTableDataFromParsedXML:', {
-      receivedParsedXmlObject,
-    });
-
-    if (!receivedParsedXmlObject) return [];
-    return extractTableDataFromParsedXML(receivedParsedXmlObject);
-  }, [receivedParsedXmlObject]);
-
   console.log(`[ViewSummary] Render para la pestaña ${tabKey}:`, {
-    xmlStringContent,
     tabKey,
-    parsedXmlObject: receivedParsedXmlObject,
-    isParsing: isParsingXml,
-    parsingError: xmlParsingError,
+    parsedXmlObject,
+    isParsingXml,
+    xmlParsingError,
     tableContentForDisplay,
   });
 
@@ -186,25 +160,20 @@ function ViewSummary({
     return <div>Error cargando datos XML: {xmlParsingError}</div>;
   }
 
-  if (receivedParsedXmlObject) {
+  if (parsedXmlObject) {
     console.log('receivedParsedXmlObject');
-
-    if (!xmlStringContent) {
-      console.log('!xmlStringContent');
-
-      return <div>No hay contenido XML para mostrar en la tabla.</div>;
-    }
 
     return (
       <div
         style={{ maxWidth: '700px', marginRight: 'auto', marginLeft: 'auto' }}
       >
         <TableComponent
-          tableContent={tableContentForDisplay}
+          tableContent={tableContentForDisplay || []}
           onContentChange={handleTableContentChange}
         />
       </div>
     );
   }
 }
+
 export default ViewSummary;
