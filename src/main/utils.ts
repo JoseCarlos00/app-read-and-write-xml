@@ -1,8 +1,16 @@
 import { dialog } from 'electron';
 import fs from 'node:fs/promises';
 
-export async function openFile(mainWindow: Electron.BrowserWindow | null) {
-  if (!mainWindow) return;
+export interface OpenedFile {
+  path: string;
+  content?: string;
+  error?: string;
+}
+
+export async function openFile(
+  mainWindow: Electron.BrowserWindow | null,
+): Promise<OpenedFile[]> {
+  if (!mainWindow) return []; // Devuelve un array vacío si no hay ventana principal
 
   const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
     filters: [
@@ -16,7 +24,8 @@ export async function openFile(mainWindow: Electron.BrowserWindow | null) {
 
   if (canceled) return []; // Devuelve un array vacío si se cancela
 
-  const files = [];
+  const files: OpenedFile[] = [];
+
   for (const filePath of filePaths) {
     try {
       const content = await fs.readFile(filePath, 'utf-8');
@@ -44,19 +53,17 @@ export async function saveFileAs(
       title: 'Guardar archivo como',
       defaultPath: fileName,
       filters: [
-        { name: 'Archivo XML', extensions: ['shxmlP'] },
-        { name: 'Archivo XML', extensions: ['shxml'] },
-        { name: 'Archivo XML', extensions: ['xml'] },
-        { name: 'Archivo XML', extensions: ['recxmlP'] },
-        { name: 'Archivo XML', extensions: ['rcxml'] },
+        {
+          name: 'Archivo XML',
+          extensions: ['shxml', 'shxmlp', 'xml', 'recxmlP', 'rcxml'],
+        },
       ],
     });
 
     if (!result.canceled && result.filePath) {
       console.log('saveFileAs:', result);
       try {
-        fs.writeFile(result.filePath, content, 'utf-8');
-
+        await fs.writeFile(result.filePath, content, 'utf-8'); // Asegurar que la escritura se complete
         return { success: true, filePath: result.filePath };
       } catch (error) {
         console.error('Error al guardar el archivo:', error);
@@ -67,6 +74,6 @@ export async function saveFileAs(
     return { success: false, error: 'El usuario canceló la acción' };
   } catch (error) {
     console.error('Error en el diálogo de guardar:', error);
-    return { success: false, error: 'Error al  guardar el archivo' };
+    return { success: false, error: 'Error al intentar guardar el archivo' };
   }
 }
