@@ -17,7 +17,7 @@ import { openFile } from './utils';
 // Inicializar el logger
 // Configura el logger para guardar los logs en un archivo
 log.transports.file.resolvePathFn = () =>
-  join(app.getPath('userData'), 'logs', 'logs/main.log');
+  join(app.getPath('userData'), 'logs', 'main.log');
 log.transports.file.level = 'info';
 log.info('Log from the main process');
 
@@ -29,15 +29,16 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 900,
     height: 670,
-    show: false,
+    show: true, // Mantener esto para evitar el parpadeo inicial
     icon: join(__dirname, '../../resources/icon.ico'),
+    backgroundColor: '#0d1117',
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
     },
-
+    // --- Inicio: Pruebas de diagnóstico ---
     titleBarStyle: 'hidden',
     ...(process.platform !== 'darwin' ? { titleBarOverlay: true } : {}),
     titleBarOverlay: {
@@ -46,6 +47,7 @@ function createWindow() {
       height: 32,
     },
     frame: false,
+    // --- Fin: Pruebas de diagnóstico ---
   });
   Menu.setApplicationMenu(null);
 
@@ -144,9 +146,6 @@ if (!gotTheLock) {
       if (mainWindow.isMinimized()) mainWindow.restore();
       mainWindow.focus();
     }
-
-    // Procesar los argumentos de la segunda instancia
-    // findFilePathInArgs(argv);
   });
 
   // --- Windows/Linux: Comprobar argumentos de línea de comandos temprano ---
@@ -170,7 +169,7 @@ if (!gotTheLock) {
 
     globalShortcut.register('CommandOrControl+O', () => {
       console.log(
-        'Atajo global Ctrl+O presionado. Implementar apertura de diálogo aquí si se desea.',
+        'Atajo global Ctrl+O presionado. Implementar apertura de dialog here si se desea.',
       );
       // Podrías llamar a una función que active el diálogo de 'open-file'
       // o enviar un mensaje al renderer para que lo haga.
@@ -202,47 +201,6 @@ process.on('uncaughtException', function (err) {
   log.error('Error no controlado:', err);
 });
 
-app.on('activate', function () {
-  // En macOS es común recrear una ventana en la aplicación cuando el
-  // icono del dock es presionado y no hay otras ventanas abiertas.
-  if (BrowserWindow.getAllWindows().length === 0) createWindow();
-});
-
-// Función para manejar la apertura de un archivo (llamada por varios disparadores)
-async function openFileInApp(filePath: string): Promise<void> {
-  console.log('openFileInApp', filePath);
-  if (!mainWindow) {
-    console.warn(
-      'Ventana principal no disponible para abrir archivo, encolando:',
-      filePath,
-    );
-    fileToOpenOnStartup = filePath; // Encolar si la ventana principal aún no está lista
-    return;
-  }
-  // Asegurar que la ventana esté visible y enfocada
-  if (mainWindow.isMinimized()) mainWindow.restore();
-  mainWindow.focus();
-
-  try {
-    console.log(`Intentando abrir archivo desde el SO: ${filePath}`);
-    const content = await fs.readFile(filePath, 'utf-8');
-    // Enviar al renderer. Define un nuevo canal IPC, ej: 'file-opened-by-os'
-    mainWindow.webContents.send('file-opened-by-os', {
-      path: filePath,
-      content,
-    });
-  } catch (error: any) {
-    console.error(
-      `Error al leer el archivo especificado por el SO: ${filePath}`,
-      error,
-    );
-    dialog.showErrorBox(
-      'Error al abrir archivo',
-      `No se pudo leer el archivo: ${filePath}\n${error.message}`,
-    );
-  }
-}
-
 // Ayudante para encontrar una ruta de archivo adecuada en los argumentos de la línea de comandos
 function findFilePathInArgs(argv: string[]): string | null {
   console.log('findFilePathInArgs', { fileToOpenOnStartup, argv });
@@ -265,4 +223,38 @@ function findFilePathInArgs(argv: string[]): string | null {
     }
   }
   return null;
+}
+
+function openFileInApp(filePath: string) {
+  console.log('openFileInApp', { filePath });
+
+  if (mainWindow) {
+    fs.readFile(filePath, 'utf-8')
+      .then((content) => {
+        mainWindow?.webContents.send('file-opened', {
+          path: filePath,
+          content,
+        });
+      })
+      .catch((error) => {
+        console.error(
+          'Error al abrir el archivo desde la línea de comandos:',
+          error,
+        );
+        mainWindow?.webContents.send('file-open-error', {
+          path: filePath,
+          error: 'No se pudo abrir el archivo.',
+        });
+      });
+  } else {
+    console.warn(
+      'mainWindow no está disponible al intentar abrir el archivo:',
+      filePath,
+    );
+    // Considera mostrar un diálogo de error si mainWindow no está listo
+    dialog.showErrorBox(
+      'Error al abrir archivo',
+      'La ventana principal no está lista para abrir archivos.',
+    );
+  }
 }

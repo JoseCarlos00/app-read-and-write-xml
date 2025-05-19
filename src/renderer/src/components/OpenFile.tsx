@@ -35,9 +35,10 @@ function OpenFile() {
     window.ipcRenderer.openFileEvent(handleOpenFile);
 
     // En tu código de renderer (ej. un componente React):
-    window.electronAPI.onFileOpenedByOS(({ path, content }) => {
+    window.ipcRenderer.openFileWindows(({ path, content }) => {
       console.log('Archivo abierto por el SO:', { path, content });
       // Aquí actualizas tu UI con el contenido del archivo
+
       createTab(path, content);
       // Por ejemplo, establecer el contenido en un editor, mostrar información del archivo, etc.
     });

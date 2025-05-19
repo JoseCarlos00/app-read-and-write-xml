@@ -1,7 +1,9 @@
 import { dialog } from 'electron';
 import fs from 'node:fs/promises';
 
-export async function openFile(mainWindow: Electron.BrowserWindow) {
+export async function openFile(mainWindow: Electron.BrowserWindow | null) {
+  if (!mainWindow) return;
+
   const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
     filters: [
       {
@@ -28,8 +30,8 @@ export async function openFile(mainWindow: Electron.BrowserWindow) {
   return files; // Devuelve un array de objetos con la ruta y el contenido (o error)
 }
 
-export // Función para guardar archivo como
-async function saveFileAs(
+// Función para guardar archivo como
+export async function saveFileAs(
   event: Electron.IpcMainInvokeEvent,
   { content, fileName = 'archivo' }: { content: string; fileName?: string },
 ) {
