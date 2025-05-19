@@ -16,6 +16,7 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils';
 const isDev = process.env.NODE_ENV !== 'production';
 
 let mainWindow: BrowserWindow | null = null;
+let fileToOpenOnStartup: string | null = null; // Almacena la ruta del archivo si la app se inicia con uno
 
 function createWindow() {
   // Create the browser window.
@@ -43,6 +44,11 @@ function createWindow() {
 
   mainWindow.on('ready-to-show', () => {
     mainWindow?.show();
+    // Si un archivo fue encolado para abrirse al inicio
+    if (fileToOpenOnStartup) {
+      openFileInApp(fileToOpenOnStartup);
+      fileToOpenOnStartup = null; // Limpiar después de procesar
+    }
   });
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -65,30 +71,56 @@ function createWindow() {
   }
 }
 
-app
-  .whenReady()
-  .then(() => {
-    // Set app user model id for windows
-    electronApp.setAppUserModelId('com.electron');
+// --- Manejo de instancia única ---
+const gotTheLock = app.requestSingleInstanceLock();
+console.log({ gotTheLock });
+
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on('second-instance', (event, commandLine, workingDirectory) => {
+    // Alguien intentó ejecutar una segunda instancia, debemos enfocar nuestra ventana.
+    const filePath = findFilePathInArgs(commandLine);
+    if (filePath) {
+      openFileInApp(filePath);
+    } else if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+  });
+
+  // --- Windows/Linux: Comprobar argumentos de línea de comandos temprano ---
+  if (process.platform !== 'darwin' && !fileToOpenOnStartup) {
+    const cliFilePath = findFilePathInArgs(process.argv);
+    if (cliFilePath) {
+      fileToOpenOnStartup = cliFilePath;
+    }
+  }
+
+  app.whenReady().then(() => {
+    // Establecer el AppUserModelId para Windows (debe coincidir con appId en electron-builder.yml)
+    electronApp.setAppUserModelId('com.electron.app');
 
     app.on('browser-window-created', (_, window) => {
       optimizer.watchWindowShortcuts(window);
     });
 
     globalShortcut.register('CommandOrControl+O', () => {
-      console.log('Electron loves global shortcuts!');
+      console.log(
+        'Atajo global Ctrl+O presionado. Implementar apertura de diálogo aquí si se desea.',
+      );
+      // Podrías llamar a una función que active el diálogo de 'open-file'
+      // o enviar un mensaje al renderer para que lo haga.
+      mainWindow?.webContents.send('open-file-dialog');
     });
-  })
-  .then(createWindow);
+    createWindow();
+  });
+}
 
 app.on('activate', function () {
+  // En macOS es común recrear una ventana en la aplicación cuando el
+  // icono del dock es presionado y no hay otras ventanas abiertas.
   if (BrowserWindow.getAllWindows().length === 0) createWindow();
-});
-
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
 });
 
 // In this file you can include the rest of your app"s specific main process
@@ -120,17 +152,61 @@ ipcMain.handle('open-file', async () => {
   return files; // Devuelve un array de objetos con la ruta y el contenido (o error)
 });
 
-// Maneja el guardado de archivos
-ipcMain.on('save-file', (event, { filePath, content }) => {
-  try {
-    fs.writeFileSync(filePath, content);
-    event.sender.send('file-saved', { filePath, success: true }); // Envia confirmación
-  } catch (error) {
-    console.error(`Error al guardar el archivo: ${filePath}`, error);
-    event.sender.send('file-saved', {
+// Función para manejar la apertura de un archivo (llamada por varios disparadores)
+async function openFileInApp(filePath: string): Promise<void> {
+  console.log('openFileInApp', filePath);
+  if (!mainWindow) {
+    console.warn(
+      'Ventana principal no disponible para abrir archivo, encolando:',
       filePath,
-      success: false,
-      error: error.message,
-    }); // Envia error
+    );
+    fileToOpenOnStartup = filePath; // Encolar si la ventana principal aún no está lista
+    return;
   }
-});
+  // Asegurar que la ventana esté visible y enfocada
+  if (mainWindow.isMinimized()) mainWindow.restore();
+  mainWindow.focus();
+
+  try {
+    console.log(`Intentando abrir archivo desde el SO: ${filePath}`);
+    const content = await fs.readFile(filePath, 'utf-8');
+    // Enviar al renderer. Define un nuevo canal IPC, ej: 'file-opened-by-os'
+    mainWindow.webContents.send('file-opened-by-os', {
+      path: filePath,
+      content,
+    });
+  } catch (error: any) {
+    console.error(
+      `Error al leer el archivo especificado por el SO: ${filePath}`,
+      error,
+    );
+    dialog.showErrorBox(
+      'Error al abrir archivo',
+      `No se pudo leer el archivo: ${filePath}\n${error.message}`,
+    );
+  }
+}
+
+// Ayudante para encontrar una ruta de archivo adecuada en los argumentos de la línea de comandos
+function findFilePathInArgs(argv: string[]): string | null {
+  console.log({ fileToOpenOnStartup });
+
+  const supportedExtensions = [
+    '.xml',
+    '.shxmlp',
+    '.shxml',
+    '.rcxml',
+    '.recxmlp',
+  ];
+  // Omitir argv[0] (ejecutable). En dev, argv[1] podría ser '.'
+  for (const arg of argv.slice(1)) {
+    // Omitir opciones (como --inspect) y la ruta del script principal en dev ('.')
+    if (arg === '.' || arg.startsWith('--') || arg.startsWith('/-')) {
+      continue;
+    }
+    if (supportedExtensions.some((ext) => arg.toLowerCase().endsWith(ext))) {
+      return arg;
+    }
+  }
+  return null;
+}

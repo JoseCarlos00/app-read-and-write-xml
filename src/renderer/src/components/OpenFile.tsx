@@ -33,6 +33,14 @@ function OpenFile() {
   useEffect(() => {
     // Escuchar el evento desde el menú para abrir el archivo
     window.ipcRenderer.openFileEvent(handleOpenFile);
+
+    // En tu código de renderer (ej. un componente React):
+    window.electronAPI.onFileOpenedByOS(({ path, content }) => {
+      console.log('Archivo abierto por el SO:', { path, content });
+      // Aquí actualizas tu UI con el contenido del archivo
+      createTab(path, content);
+      // Por ejemplo, establecer el contenido en un editor, mostrar información del archivo, etc.
+    });
   }, [handleOpenFile]);
 
   return <></>;

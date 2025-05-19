@@ -12,6 +12,27 @@ asarUnpack:
   - resources/**
 win:
   executableName: app-read-and-write-xml
+  fileAssociations:
+    - ext: xml
+      name: XML File
+      description: Documento XML manejado por app-read-and-write-xml
+      icon: resources/icon.ico # Ruta relativa al directorio del proyecto o buildResources
+    - ext: shxmlp
+      name: SHXMLP File
+      description: Documento SHXMLP manejado por app-read-and-write-xml
+      icon: resources/icon.ico
+    - ext: shxml
+      name: SHXML File
+      description: Documento SHXML manejado por app-read-and-write-xml
+      icon: resources/icon.ico
+    - ext: rcxml
+      name: RCXML File
+      description: Documento RCXML manejado por app-read-and-write-xml
+      icon: resources/icon.ico
+    - ext: recxmlp
+      name: RECXMLP File
+      description: Documento RECXMLP manejado por app-read-and-write-xml
+      icon: resources/icon.ico
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}

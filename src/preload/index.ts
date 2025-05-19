@@ -118,13 +118,17 @@ if (process.contextIsolated) {
       saveFile: (filePath: string, content: string) => {
         ipcRenderer.send('save-file', { filePath, content });
       },
+
       onFileSaved: (
         callback: (event: IpcRendererEvent, ...args: any[]) => void,
       ) => ipcRenderer.on('file-saved', callback), // Escucha el evento 'file-saved'
+
+      onFileOpenedByOS: (callback) =>
+        ipcRenderer.on('file-opened-by-os', (_event, value) => callback(value)),
     });
 
     const exposedIpcRendererAPI: CustomIpcRendererAPI = {
-      openFileEvent: (callback) => ipcRenderer.on('menu-open-file', callback),
+      openFileEvent: (callback) => ipcRenderer.on('open-file-dialog', callback),
       saveFileEvent: (callback) => ipcRenderer.on('menu-save-file', callback),
       saveFileAsEvent: (callback) =>
         ipcRenderer.on('menu-save-file-as', callback),
