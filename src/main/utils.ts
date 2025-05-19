@@ -1,4 +1,4 @@
-import { dialog } from 'electron';
+import { BrowserWindow, dialog } from 'electron';
 import fs from 'node:fs/promises';
 
 export interface OpenedFile {
@@ -75,5 +75,65 @@ export async function saveFileAs(
   } catch (error) {
     console.error('Error en el diálogo de guardar:', error);
     return { success: false, error: 'Error al intentar guardar el archivo' };
+  }
+}
+
+// Ayudante para encontrar una ruta de archivo adecuada en los argumentos de la línea de comandos
+export function findFilePathsInArgs(argv: string[]): string[] {
+  console.log('utils.findFilePathsInArgs procesando argv:', argv);
+
+  const foundFiles: string[] = [];
+  const supportedExtensions = [
+    '.xml',
+    '.shxmlp',
+    '.shxml',
+    '.rcxml',
+    '.recxmlp',
+  ];
+  // Omitir argv[0] (ejecutable). En dev, argv[1] podría ser '.'
+  for (const arg of argv.slice(1)) {
+    // Omitir opciones (como --inspect) y la ruta del script principal en dev ('.')
+    if (arg === '.' || arg.startsWith('--') || arg.startsWith('/-')) {
+      continue;
+    }
+    if (supportedExtensions.some((ext) => arg.toLowerCase().endsWith(ext))) {
+      foundFiles.push(arg);
+    }
+  }
+  return foundFiles;
+}
+
+export async function openFileInApp(
+  filePath: string,
+  mainWindow: BrowserWindow | null,
+): Promise<void> {
+  console.log('utils.openFileInApp', { filePath });
+
+  if (mainWindow) {
+    try {
+      const content = await fs.readFile(filePath, 'utf-8');
+      mainWindow.webContents.send('file-opened', {
+        path: filePath,
+        content,
+      });
+    } catch (error: any) {
+      console.error(
+        `Error al abrir el archivo ${filePath} desde openFileInApp:`,
+        error,
+      );
+      mainWindow.webContents.send('file-open-error', {
+        path: filePath,
+        error: `No se pudo abrir el archivo: ${error.message || 'Error desconocido'}`,
+      });
+    }
+  } else {
+    console.warn(
+      'utils.openFileInApp: mainWindow no está disponible al intentar abrir el archivo:',
+      filePath,
+    );
+    dialog.showErrorBox(
+      'Error al abrir archivo',
+      'La ventana principal no está lista para abrir archivos.',
+    );
   }
 }

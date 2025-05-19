@@ -1,3 +1,7 @@
+import { shell } from 'electron/common';
+import { join } from 'path';
+import { electronApp, optimizer, is } from '@electron-toolkit/utils';
+import log from 'electron-log/main';
 import {
   app,
   BrowserWindow,
@@ -6,13 +10,8 @@ import {
   Menu,
   globalShortcut,
 } from 'electron/main';
-import { shell } from 'electron/common';
-import fs from 'fs/promises';
-import { join } from 'path';
-import { electronApp, optimizer, is } from '@electron-toolkit/utils';
-import log from 'electron-log/main';
 
-import { openFile } from './utils';
+import { openFile, findFilePathsInArgs, openFileInApp } from './utils';
 
 // Inicializar el logger
 // Configura el logger para guardar los logs en un archivo
@@ -63,7 +62,9 @@ function createWindow() {
     mainWindow?.show();
     // Si archivos fueron encolados para abrirse al inicio
     if (filesToOpenOnStartup.length > 0) {
-      filesToOpenOnStartup.forEach((filePath) => openFileInApp(filePath));
+      filesToOpenOnStartup.forEach((filePath) =>
+        openFileInApp(filePath, mainWindow),
+      );
       filesToOpenOnStartup = []; // Limpiar después de procesar
     }
   });
@@ -140,7 +141,7 @@ if (!gotTheLock) {
     const filePaths = findFilePathsInArgs(argv);
 
     if (filePaths.length > 0) {
-      filePaths.forEach((filePath) => openFileInApp(filePath));
+      filePaths.forEach((filePath) => openFileInApp(filePath, mainWindow));
     } else if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore();
       mainWindow.focus();
@@ -198,62 +199,3 @@ process.on('uncaughtException', function (err) {
   console.log('Error no controlado:', err);
   log.error('Error no controlado:', err);
 });
-
-// Ayudante para encontrar una ruta de archivo adecuada en los argumentos de la línea de comandos
-function findFilePathsInArgs(argv: string[]): string[] {
-  console.log('findFilePathsInArgs procesando argv:', argv);
-
-  const foundFiles: string[] = [];
-  const supportedExtensions = [
-    '.xml',
-    '.shxmlp',
-    '.shxml',
-    '.rcxml',
-    '.recxmlp',
-  ];
-  // Omitir argv[0] (ejecutable). En dev, argv[1] podría ser '.'
-  for (const arg of argv.slice(1)) {
-    // Omitir opciones (como --inspect) y la ruta del script principal en dev ('.')
-    if (arg === '.' || arg.startsWith('--') || arg.startsWith('/-')) {
-      continue;
-    }
-    if (supportedExtensions.some((ext) => arg.toLowerCase().endsWith(ext))) {
-      foundFiles.push(arg);
-    }
-  }
-  return foundFiles;
-}
-
-function openFileInApp(filePath: string) {
-  console.log('openFileInApp', { filePath });
-
-  if (mainWindow) {
-    fs.readFile(filePath, 'utf-8')
-      .then((content) => {
-        mainWindow?.webContents.send('file-opened', {
-          path: filePath,
-          content,
-        });
-      })
-      .catch((error) => {
-        console.error(
-          'Error al abrir el archivo desde la línea de comandos:',
-          error,
-        );
-        mainWindow?.webContents.send('file-open-error', {
-          path: filePath,
-          error: 'No se pudo abrir el archivo.',
-        });
-      });
-  } else {
-    console.warn(
-      'mainWindow no está disponible al intentar abrir el archivo:',
-      filePath,
-    );
-    // Considera mostrar un diálogo de error si mainWindow no está listo
-    dialog.showErrorBox(
-      'Error al abrir archivo',
-      'La ventana principal no está lista para abrir archivos.',
-    );
-  }
-}
