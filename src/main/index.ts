@@ -1,19 +1,25 @@
 import {
   app,
-  shell,
   BrowserWindow,
-  Menu,
   ipcMain,
   dialog,
+  Menu,
   globalShortcut,
-} from 'electron';
-
+} from 'electron/main';
+import { shell } from 'electron/common';
+import fs from 'fs/promises';
 import { join } from 'path';
-import fs from 'node:fs/promises';
-
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
+import log from 'electron-log/main';
 
-const isDev = process.env.NODE_ENV !== 'production';
+import { openFile } from './utils';
+
+// Inicializar el logger
+// Configura el logger para guardar los logs en un archivo
+log.transports.file.resolvePathFn = () =>
+  join(app.getPath('userData'), 'logs', 'logs/main.log');
+log.transports.file.level = 'info';
+log.info('Log from the main process');
 
 let mainWindow: BrowserWindow | null = null;
 let fileToOpenOnStartup: string | null = null; // Almacena la ruta del archivo si la app se inicia con uno
@@ -41,9 +47,19 @@ function createWindow() {
     },
     frame: false,
   });
+  Menu.setApplicationMenu(null);
 
   mainWindow.on('ready-to-show', () => {
+    console.log(
+      '[createWindow] Evento ready-to-show disparado. Mostrando ventana.',
+      { fileToOpenOnStartup },
+    );
+
+    log.info('[createWindow] Evento ready-to-show disparado.');
+    log.info('Mostrando ventana.');
+
     mainWindow?.show();
+
     // Si un archivo fue encolado para abrirse al inicio
     if (fileToOpenOnStartup) {
       openFileInApp(fileToOpenOnStartup);
@@ -56,18 +72,58 @@ function createWindow() {
     return { action: 'deny' };
   });
 
-  Menu.setApplicationMenu(null);
+  // Log para depuración de la carga de contenido
+  console.log(`[createWindow] Modo desarrollo (is.dev): ${is.dev}`);
+  console.log(
+    `[createWindow] ELECTRON_RENDERER_URL: ${process.env['ELECTRON_RENDERER_URL']}`,
+  );
 
-  // HMR for renderer base on electron-vite cli.
-  // Load the remote URL for development or the local html file for production.
+  mainWindow.webContents.on(
+    'did-fail-load',
+    (event, errorCode, errorDescription, validatedURL) => {
+      console.error(
+        `[webContents] Error al cargar URL: ${validatedURL}. Código: ${errorCode}. Descripción: ${errorDescription}`,
+      );
+      log.error(
+        `[webContents] Error al cargar URL: ${validatedURL}. Código: ${errorCode}. Descripción: ${errorDescription}`,
+      );
+      dialog.showErrorBox(
+        'Error de Carga',
+        `No se pudo cargar la URL: ${validatedURL}\n${errorDescription}`,
+      );
+    },
+  );
+
+  let loadPromise;
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL']);
+    console.log(
+      `[createWindow] Cargando URL: ${process.env['ELECTRON_RENDERER_URL']}`,
+    );
+    loadPromise = mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL']);
   } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'));
+    const indexPath = join(__dirname, '../renderer/index.html');
+    console.log(`[createWindow] Cargando archivo: ${indexPath}`);
+    loadPromise = mainWindow.loadFile(indexPath);
   }
 
-  if (isDev) {
-    // mainWindow.webContents.openDevTools();
+  loadPromise
+    .then(() => {
+      console.log('[createWindow] Contenido cargado exitosamente.');
+    })
+    .catch((err) => {
+      console.error('[createWindow] Error al cargar contenido:', err);
+      log.error('[createWindow] Error al cargar contenido:', err);
+      dialog.showErrorBox(
+        'Error Crítico de Carga',
+        `No se pudo cargar el contenido de la ventana principal: ${err.message}`,
+      );
+      // Considera cerrar la app si la carga es crítica y falla
+      // app.quit();
+    });
+
+  if (is.dev) {
+    // Ayuda a depurar problemas del renderer
+    mainWindow.webContents.openDevTools();
   }
 }
 
@@ -78,15 +134,19 @@ console.log({ gotTheLock });
 if (!gotTheLock) {
   app.quit();
 } else {
-  app.on('second-instance', (event, commandLine, workingDirectory) => {
+  app.on('second-instance', (_, argv) => {
     // Alguien intentó ejecutar una segunda instancia, debemos enfocar nuestra ventana.
-    const filePath = findFilePathInArgs(commandLine);
+    const filePath = findFilePathInArgs(argv);
+
     if (filePath) {
       openFileInApp(filePath);
     } else if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore();
       mainWindow.focus();
     }
+
+    // Procesar los argumentos de la segunda instancia
+    // findFilePathInArgs(argv);
   });
 
   // --- Windows/Linux: Comprobar argumentos de línea de comandos temprano ---
@@ -98,7 +158,10 @@ if (!gotTheLock) {
   }
 
   app.whenReady().then(() => {
-    // Establecer el AppUserModelId para Windows (debe coincidir con appId en electron-builder.yml)
+    // Create the main window first
+    createWindow();
+
+    // Set app user model id for windows
     electronApp.setAppUserModelId('com.electron.app');
 
     app.on('browser-window-created', (_, window) => {
@@ -113,43 +176,36 @@ if (!gotTheLock) {
       // o enviar un mensaje al renderer para que lo haga.
       mainWindow?.webContents.send('open-file-dialog');
     });
-    createWindow();
+
+    app.on('activate', function () {
+      if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    });
+
+    log.info(`Checking for updates. Current version ${app.getVersion()}`);
   });
 }
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
+    app.quit();
+    mainWindow?.destroy();
+  }
+});
+
+// In this file you can include the rest of your app"s specific main process
+// Maneja la apertura de archivos
+ipcMain.handle('open-file', () => openFile(mainWindow));
+
+//Global exception handler
+process.on('uncaughtException', function (err) {
+  console.log('Error no controlado:', err);
+  log.error('Error no controlado:', err);
+});
 
 app.on('activate', function () {
   // En macOS es común recrear una ventana en la aplicación cuando el
   // icono del dock es presionado y no hay otras ventanas abiertas.
   if (BrowserWindow.getAllWindows().length === 0) createWindow();
-});
-
-// In this file you can include the rest of your app"s specific main process
-// Maneja la apertura de archivos
-ipcMain.handle('open-file', async () => {
-  const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
-    filters: [
-      {
-        name: 'XML Files',
-        extensions: ['xml', 'shxmlp', 'shxml', 'rcxml', 'recxmlp'],
-      },
-    ],
-    properties: ['openFile', 'multiSelections'], // Permite abrir múltiples archivos
-  });
-
-  if (canceled) return []; // Devuelve un array vacío si se cancela
-
-  const files = [];
-  for (const filePath of filePaths) {
-    try {
-      const content = await fs.readFile(filePath, 'utf-8');
-      files.push({ path: filePath, content });
-    } catch (error) {
-      console.error(`Error al leer el archivo: ${filePath}`, error);
-      // Aquí podrías mostrar un mensaje de error al usuario
-      files.push({ path: filePath, error: `No se pudo leer el archivo.` }); // Indica el error
-    }
-  }
-  return files; // Devuelve un array de objetos con la ruta y el contenido (o error)
 });
 
 // Función para manejar la apertura de un archivo (llamada por varios disparadores)
@@ -189,7 +245,7 @@ async function openFileInApp(filePath: string): Promise<void> {
 
 // Ayudante para encontrar una ruta de archivo adecuada en los argumentos de la línea de comandos
 function findFilePathInArgs(argv: string[]): string | null {
-  console.log({ fileToOpenOnStartup });
+  console.log('findFilePathInArgs', { fileToOpenOnStartup, argv });
 
   const supportedExtensions = [
     '.xml',
