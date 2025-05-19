@@ -1,133 +1,20 @@
-import { shell } from 'electron/common';
-import { join } from 'path';
-import { electronApp, optimizer, is } from '@electron-toolkit/utils';
+import { electronApp, optimizer } from '@electron-toolkit/utils';
 import log from 'electron-log/main';
-import {
-  app,
-  BrowserWindow,
-  ipcMain,
-  dialog,
-  Menu,
-  globalShortcut,
-} from 'electron/main';
+import { app, BrowserWindow, ipcMain, globalShortcut } from 'electron/main';
 
+import { join } from 'path';
 import { openFile, findFilePathsInArgs, openFileInApp } from './utils';
+import { createAppWindow } from './createWindowsMain';
 
 // Inicializar el logger
 // Configura el logger para guardar los logs en un archivo
 log.transports.file.resolvePathFn = () =>
   join(app.getPath('userData'), 'logs', 'main.log');
 log.transports.file.level = 'info';
-log.info('Log from the main process');
+log.info('Logger inicializado en el proceso principal.');
 
 let mainWindow: BrowserWindow | null = null;
 let filesToOpenOnStartup: string[] = []; // Almacena las rutas de los archivos si la app se inicia con ellos
-
-function createWindow() {
-  // Create the browser window.
-  mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
-    show: true, // Mantener esto para evitar el parpadeo inicial
-    icon: join(__dirname, '../../resources/icon.ico'),
-    backgroundColor: '#0d1117',
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      preload: join(__dirname, '../preload/index.js'),
-      sandbox: false,
-    },
-    // --- Inicio: Pruebas de diagnóstico ---
-    titleBarStyle: 'hidden',
-    ...(process.platform !== 'darwin' ? { titleBarOverlay: true } : {}),
-    titleBarOverlay: {
-      color: '#1f1f1f',
-      symbolColor: '#74b1be',
-      height: 32,
-    },
-    frame: false,
-    // --- Fin: Pruebas de diagnóstico ---
-  });
-  Menu.setApplicationMenu(null);
-
-  mainWindow.on('ready-to-show', () => {
-    console.log(
-      '[createWindow] Evento ready-to-show disparado. Mostrando ventana.',
-      { filesToOpenOnStartup },
-    );
-
-    log.info('[createWindow] Evento ready-to-show disparado.');
-    log.info('Mostrando ventana.');
-
-    mainWindow?.show();
-    // Si archivos fueron encolados para abrirse al inicio
-    if (filesToOpenOnStartup.length > 0) {
-      filesToOpenOnStartup.forEach((filePath) =>
-        openFileInApp(filePath, mainWindow),
-      );
-      filesToOpenOnStartup = []; // Limpiar después de procesar
-    }
-  });
-
-  mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url);
-    return { action: 'deny' };
-  });
-
-  // Log para depuración de la carga de contenido
-  console.log(`[createWindow] Modo desarrollo (is.dev): ${is.dev}`);
-  console.log(
-    `[createWindow] ELECTRON_RENDERER_URL: ${process.env['ELECTRON_RENDERER_URL']}`,
-  );
-
-  mainWindow.webContents.on(
-    'did-fail-load',
-    (event, errorCode, errorDescription, validatedURL) => {
-      console.error(
-        `[webContents] Error al cargar URL: ${validatedURL}. Código: ${errorCode}. Descripción: ${errorDescription}`,
-      );
-      log.error(
-        `[webContents] Error al cargar URL: ${validatedURL}. Código: ${errorCode}. Descripción: ${errorDescription}`,
-      );
-      dialog.showErrorBox(
-        'Error de Carga',
-        `No se pudo cargar la URL: ${validatedURL}\n${errorDescription}`,
-      );
-    },
-  );
-
-  let loadPromise;
-  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    console.log(
-      `[createWindow] Cargando URL: ${process.env['ELECTRON_RENDERER_URL']}`,
-    );
-    loadPromise = mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL']);
-  } else {
-    const indexPath = join(__dirname, '../renderer/index.html');
-    console.log(`[createWindow] Cargando archivo: ${indexPath}`);
-    loadPromise = mainWindow.loadFile(indexPath);
-  }
-
-  loadPromise
-    .then(() => {
-      console.log('[createWindow] Contenido cargado exitosamente.');
-    })
-    .catch((err) => {
-      console.error('[createWindow] Error al cargar contenido:', err);
-      log.error('[createWindow] Error al cargar contenido:', err);
-      dialog.showErrorBox(
-        'Error Crítico de Carga',
-        `No se pudo cargar el contenido de la ventana principal: ${err.message}`,
-      );
-      // Considera cerrar la app si la carga es crítica y falla
-      // app.quit();
-    });
-
-  if (is.dev) {
-    // Ayuda a depurar problemas del renderer
-    mainWindow.webContents.openDevTools();
-  }
-}
 
 // --- Manejo de instancia única ---
 const gotTheLock = app.requestSingleInstanceLock();
@@ -139,6 +26,10 @@ if (!gotTheLock) {
   app.on('second-instance', (_, argv) => {
     // Alguien intentó ejecutar una segunda instancia, debemos enfocar nuestra ventana.
     const filePaths = findFilePathsInArgs(argv);
+    // Asegúrate de que mainWindow se refiera a la instancia correcta aquí.
+    // Si mainWindow aún no está creado, podrías encolar estos archivos.
+    // Por ahora, asumimos que mainWindow ya existe o será creado pronto.
+    // La lógica de `openFileInApp` ya maneja si mainWindow es null.
 
     if (filePaths.length > 0) {
       filePaths.forEach((filePath) => openFileInApp(filePath, mainWindow));
@@ -157,8 +48,14 @@ if (!gotTheLock) {
   }
 
   app.whenReady().then(() => {
-    // Create the main window first
-    createWindow();
+    mainWindow = createAppWindow(
+      [...filesToOpenOnStartup], // Pasar una copia para que la función de creación la maneje
+      (filePath, winInstance) => openFileInApp(filePath, winInstance),
+      () => {
+        filesToOpenOnStartup = []; // Limpiar la lista original después de que se procesen
+      },
+    );
+    log.info('Ventana principal creada.');
 
     // Set app user model id for windows
     electronApp.setAppUserModelId('com.electron.app');
@@ -177,7 +74,8 @@ if (!gotTheLock) {
     });
 
     app.on('activate', function () {
-      if (BrowserWindow.getAllWindows().length === 0) createWindow();
+      if (BrowserWindow.getAllWindows().length === 0 && !mainWindow)
+        mainWindow = createAppWindow([], openFileInApp, () => {}); // Crear si no existe ninguna
     });
 
     log.info(`Checking for updates. Current version ${app.getVersion()}`);
