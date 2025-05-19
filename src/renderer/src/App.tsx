@@ -3,14 +3,14 @@ import { Layout } from 'antd';
 import OpenFile from './components/OpenFile';
 import TabsManager from './view/TabsManager';
 import Tools from './view/Tools';
-import { InitialData } from './hooks/addInitialData';
+// import { InitialData } from './hooks/addInitialData';
 
 const { Header, Content } = Layout;
 
 function App() {
   return (
     <>
-      <InitialData />
+      {/* <InitialData /> */}
       <OpenFile />
       <Layout
         style={{

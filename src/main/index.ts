@@ -22,7 +22,7 @@ log.transports.file.level = 'info';
 log.info('Log from the main process');
 
 let mainWindow: BrowserWindow | null = null;
-let fileToOpenOnStartup: string | null = null; // Almacena la ruta del archivo si la app se inicia con uno
+let filesToOpenOnStartup: string[] = []; // Almacena las rutas de los archivos si la app se inicia con ellos
 
 function createWindow() {
   // Create the browser window.
@@ -54,18 +54,17 @@ function createWindow() {
   mainWindow.on('ready-to-show', () => {
     console.log(
       '[createWindow] Evento ready-to-show disparado. Mostrando ventana.',
-      { fileToOpenOnStartup },
+      { filesToOpenOnStartup },
     );
 
     log.info('[createWindow] Evento ready-to-show disparado.');
     log.info('Mostrando ventana.');
 
     mainWindow?.show();
-
-    // Si un archivo fue encolado para abrirse al inicio
-    if (fileToOpenOnStartup) {
-      openFileInApp(fileToOpenOnStartup);
-      fileToOpenOnStartup = null; // Limpiar después de procesar
+    // Si archivos fueron encolados para abrirse al inicio
+    if (filesToOpenOnStartup.length > 0) {
+      filesToOpenOnStartup.forEach((filePath) => openFileInApp(filePath));
+      filesToOpenOnStartup = []; // Limpiar después de procesar
     }
   });
 
@@ -138,21 +137,21 @@ if (!gotTheLock) {
 } else {
   app.on('second-instance', (_, argv) => {
     // Alguien intentó ejecutar una segunda instancia, debemos enfocar nuestra ventana.
-    const filePath = findFilePathInArgs(argv);
+    const filePaths = findFilePathsInArgs(argv);
 
-    if (filePath) {
-      openFileInApp(filePath);
+    if (filePaths.length > 0) {
+      filePaths.forEach((filePath) => openFileInApp(filePath));
     } else if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore();
       mainWindow.focus();
     }
   });
 
-  // --- Windows/Linux: Comprobar argumentos de línea de comandos temprano ---
-  if (process.platform !== 'darwin' && !fileToOpenOnStartup) {
-    const cliFilePath = findFilePathInArgs(process.argv);
-    if (cliFilePath) {
-      fileToOpenOnStartup = cliFilePath;
+  // --- Windows/Linux: Comprobar argumentos de línea de comandos temprano para múltiples archivos ---
+  if (process.platform !== 'darwin' && filesToOpenOnStartup.length === 0) {
+    const cliFilePaths = findFilePathsInArgs(process.argv);
+    if (cliFilePaths.length > 0) {
+      filesToOpenOnStartup = cliFilePaths;
     }
   }
 
@@ -202,9 +201,10 @@ process.on('uncaughtException', function (err) {
 });
 
 // Ayudante para encontrar una ruta de archivo adecuada en los argumentos de la línea de comandos
-function findFilePathInArgs(argv: string[]): string | null {
-  console.log('findFilePathInArgs', { fileToOpenOnStartup, argv });
+function findFilePathsInArgs(argv: string[]): string[] {
+  console.log('findFilePathsInArgs procesando argv:', argv);
 
+  const foundFiles: string[] = [];
   const supportedExtensions = [
     '.xml',
     '.shxmlp',
@@ -219,10 +219,10 @@ function findFilePathInArgs(argv: string[]): string | null {
       continue;
     }
     if (supportedExtensions.some((ext) => arg.toLowerCase().endsWith(ext))) {
-      return arg;
+      foundFiles.push(arg);
     }
   }
-  return null;
+  return foundFiles;
 }
 
 function openFileInApp(filePath: string) {
