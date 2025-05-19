@@ -29,10 +29,11 @@ const Tools = () => {
         gap="small"
         align="flex-start"
         vertical
-        style={{ paddingBlock: '4px', backgroundColor: '#0d1117' }}
+        style={{ padding: 8, backgroundColor: '#1f1f1f', height: 32 }}
       >
         <Flex gap="small" wrap>
           <Radio.Group
+            className="button-titlebar"
             value={selectedView}
             onChange={handleViewChange}
             size="small"
@@ -52,6 +53,7 @@ const Tools = () => {
           />
 
           <Button
+            className="button-titlebar"
             type="text"
             size="small"
             title="Buscar"
@@ -65,6 +67,7 @@ const Tools = () => {
           />
 
           <Button
+            className="button-titlebar"
             type="text"
             size="small"
             title="Guardar"

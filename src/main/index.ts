@@ -1,19 +1,21 @@
-import { app, shell, BrowserWindow, Menu, ipcMain, dialog } from 'electron';
-import { join } from 'path';
-import { electronApp, optimizer, is } from '@electron-toolkit/utils';
 import {
-  installExtension,
-  REACT_DEVELOPER_TOOLS,
-} from 'electron-devtools-installer';
+  app,
+  shell,
+  BrowserWindow,
+  Menu,
+  ipcMain,
+  dialog,
+  globalShortcut,
+} from 'electron';
 
-import icon from '../../resources/icon.png?asset';
-
+import { join } from 'path';
 import fs from 'node:fs/promises';
 
-const isDev = process.env.NODE_ENV !== 'production';
-const isMac = process.platform === 'darwin';
+import { electronApp, optimizer, is } from '@electron-toolkit/utils';
 
-let mainWindow;
+const isDev = process.env.NODE_ENV !== 'production';
+
+let mainWindow: BrowserWindow | null = null;
 
 function createWindow() {
   // Create the browser window.
@@ -21,18 +23,26 @@ function createWindow() {
     width: 900,
     height: 670,
     show: false,
-    // autoHideMenuBar: true,
-    ...(process.platform === 'linux' ? { icon } : {}),
+    icon: join(__dirname, '../../resources/icon.ico'),
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
     },
+
+    titleBarStyle: 'hidden',
+    ...(process.platform !== 'darwin' ? { titleBarOverlay: true } : {}),
+    titleBarOverlay: {
+      color: '#1f1f1f',
+      symbolColor: '#74b1be',
+      height: 32,
+    },
+    frame: false,
   });
 
   mainWindow.on('ready-to-show', () => {
-    mainWindow.show();
+    mainWindow?.show();
   });
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -40,11 +50,7 @@ function createWindow() {
     return { action: 'deny' };
   });
 
-  Menu.setApplicationMenu(mainMenu);
-
-  mainWindow.webContents.on('context-menu', () => {
-    contextTemplate.popup(mainMenu.webContents);
-  });
+  Menu.setApplicationMenu(null);
 
   // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.
@@ -55,33 +61,28 @@ function createWindow() {
   }
 
   if (isDev) {
-    mainWindow.webContents.openDevTools();
-
-    // Install React DevTools only in development
-    installExtension(REACT_DEVELOPER_TOOLS, {
-      loadExtensionOptions: { allowFileAccess: true },
-    })
-      .then((name) => console.log(`Added Extension:  ${name}`))
-      .catch((err) => console.log('An error occurred: ', err));
+    // mainWindow.webContents.openDevTools();
   }
 }
 
-app.whenReady().then(() => {
-  // Set app user model id for windows
-  electronApp.setAppUserModelId('com.electron');
+app
+  .whenReady()
+  .then(() => {
+    // Set app user model id for windows
+    electronApp.setAppUserModelId('com.electron');
 
-  // Default open or close DevTools by F12 in development
-  // and ignore CommandOrControl + R in production.
-  // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
-  app.on('browser-window-created', (_, window) => {
-    optimizer.watchWindowShortcuts(window);
-  });
+    app.on('browser-window-created', (_, window) => {
+      optimizer.watchWindowShortcuts(window);
+    });
 
-  createWindow();
+    globalShortcut.register('CommandOrControl+O', () => {
+      console.log('Electron loves global shortcuts!');
+    });
+  })
+  .then(createWindow);
 
-  app.on('activate', function () {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
-  });
+app.on('activate', function () {
+  if (BrowserWindow.getAllWindows().length === 0) createWindow();
 });
 
 app.on('window-all-closed', () => {
@@ -133,85 +134,3 @@ ipcMain.on('save-file', (event, { filePath, content }) => {
     }); // Envia error
   }
 });
-
-// Crear el menú de la aplicación
-const mainMenu = Menu.buildFromTemplate([
-  {
-    label: 'Archivo',
-    submenu: [
-      {
-        label: 'Abrir archivo',
-        accelerator: 'CmdOrCtrl+O',
-        click: () => {
-          mainWindow.webContents.send('menu-open-file');
-        },
-      },
-      {
-        label: 'Guardar archivo',
-        accelerator: 'CmdOrCtrl+S',
-        click: () => {
-          mainWindow.webContents.send('menu-save-file');
-        },
-      },
-      {
-        label: 'Guardar Archivo Como',
-        accelerator: 'CmdOrCtrl+Shift+S',
-        click: () => {
-          mainWindow.webContents.send('menu-save-file-as');
-        },
-      },
-      { type: 'separator' },
-      isMac ? { role: 'close' } : { role: 'quit' },
-    ],
-  },
-  // { role: 'viewMenu' }
-  isDev
-    ? {
-        label: 'View',
-        submenu: [
-          { role: 'reload' },
-          { role: 'forceReload' },
-          { role: 'toggleDevTools' },
-          { type: 'separator' },
-          { role: 'resetZoom' },
-          { role: 'zoomIn' },
-          { role: 'zoomOut' },
-          { type: 'separator' },
-          { role: 'togglefullscreen' },
-        ],
-      }
-    : '',
-]);
-
-const contextTemplate = Menu.buildFromTemplate([
-  {
-    label: 'Abrir archivo',
-    accelerator: 'CmdOrCtrl+O',
-    click: () => {
-      mainWindow.webContents.send('menu-open-file');
-    },
-  },
-  {
-    label: 'Guardar archivo',
-    accelerator: 'CmdOrCtrl+S',
-    click: () => {
-      mainWindow.webContents.send('menu-save-file');
-    },
-  },
-  {
-    label: 'Guardar Archivo Como',
-    accelerator: 'CmdOrCtrl+Shift+S',
-    click: () => {
-      mainWindow.webContents.send('menu-save-file-as');
-    },
-  },
-  {
-    type: 'separator',
-  },
-  {
-    role: 'close',
-  },
-  {
-    role: 'reload',
-  },
-]);

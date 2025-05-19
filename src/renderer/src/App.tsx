@@ -26,7 +26,9 @@ function App() {
             height: 'auto',
             lineHeight: 'normal',
             backgroundColor: '#0d1117',
+            paddingBottom: '12px',
           }}
+          className="titlebar"
         >
           <Tools />
         </Header>
