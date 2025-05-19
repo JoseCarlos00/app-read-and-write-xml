@@ -59,7 +59,7 @@ const Tools = () => {
         gap="small"
         align="flex-start"
         vertical
-        style={{ padding: 8, backgroundColor: '#1f1f1f', height: 32 }}
+        style={{ padding: 8, backgroundColor: '#1f1f1f', height: 38 }}
       >
         <Flex gap="small" wrap>
           <Radio.Group

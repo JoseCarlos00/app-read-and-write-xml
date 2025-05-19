@@ -23,7 +23,7 @@ function App() {
         <Header
           style={{
             padding: 0,
-            height: 'auto',
+            height: '38px',
             lineHeight: 'normal',
             backgroundColor: '#0d1117',
             paddingBottom: '12px',

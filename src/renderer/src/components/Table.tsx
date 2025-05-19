@@ -1,5 +1,6 @@
 import { useEffect, useState, Key } from 'react';
 import { Popconfirm, Table, Button, Flex, type TableProps, Badge } from 'antd';
+import { DeleteOutlined } from '@ant-design/icons';
 
 import './Table.css';
 import { ShipmentDetail as ShipmentDetailType } from '../types/shipmentDetail';
@@ -72,6 +73,8 @@ const TableComponent = ({
     {
       title: 'Actions',
       dataIndex: 'operation',
+      width: '10%',
+      editable: false,
       render: (_, record) =>
         dataSource && dataSource.length >= 1 ? (
           <Popconfirm
@@ -80,7 +83,18 @@ const TableComponent = ({
             cancelText="Cancelar"
             onConfirm={() => handleDelete(record.key)}
           >
-            <a>Eliminar</a>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <DeleteOutlined
+                title="Eliminar"
+                style={{ color: 'red', cursor: 'pointer', fontSize: '20px' }}
+              />
+            </div>
           </Popconfirm>
         ) : null,
     },
