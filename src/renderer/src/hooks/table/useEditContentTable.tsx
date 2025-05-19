@@ -66,6 +66,12 @@ export const useEditContentTable = () => {
     const save = async () => {
       try {
         const values = await form.validateFields();
+        const currentValue = record[dataIndex];
+        const newValue = values[dataIndex];
+
+        if (currentValue === newValue) {
+          return;
+        }
 
         toggleEdit();
         handleSave({ ...record, ...values });
@@ -88,6 +94,7 @@ export const useEditContentTable = () => {
             onPressEnter={save}
             onBlur={save}
             onKeyDown={handleKeyDown}
+            onFocus={() => inputRef.current?.select()}
           />
         </Form.Item>
       ) : (

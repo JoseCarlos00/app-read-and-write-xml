@@ -1,5 +1,5 @@
 import { useEffect, useState, Key } from 'react';
-import { Popconfirm, Table, Button, Flex, type TableProps } from 'antd';
+import { Popconfirm, Table, Button, Flex, type TableProps, Badge } from 'antd';
 
 import './Table.css';
 import { ShipmentDetail as ShipmentDetailType } from '../types/shipmentDetail';
@@ -50,7 +50,7 @@ const TableComponent = ({
       dataIndex: 'sku',
       width: '30%',
       editable: true,
-      sorter: (a: TableRowData, b: TableRowData) => {
+      sorter: (a, b) => {
         if (a.sku < b.sku) {
           return -1;
         }
@@ -153,14 +153,15 @@ const TableComponent = ({
     <Flex gap="middle" vertical className="container-principal">
       <Flex align="center" justify="space-between">
         <Flex align="center" gap="middle">
-          <Button
-            type="primary"
-            onClick={handleDeleteSelected}
-            disabled={!hasSelected}
-          >
-            Eliminar Seleccionados
-          </Button>
-          {hasSelected ? `Selected ${selectedRowKeys.length} items` : null}
+          <Badge count={selectedRowKeys.length}>
+            <Button
+              type="primary"
+              onClick={handleDeleteSelected}
+              disabled={!hasSelected}
+            >
+              Eliminar Filas
+            </Button>
+          </Badge>
         </Flex>
 
         <label>Total: {dataSource.length}</label>
@@ -175,6 +176,7 @@ const TableComponent = ({
         size="small"
         rowSelection={rowSelection}
         pagination={paginationCOnfig}
+        sticky={true}
       />
     </Flex>
   );
