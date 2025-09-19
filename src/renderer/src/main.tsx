@@ -10,7 +10,7 @@ import App from './App';
 
 loader.config({ monaco });
 
-createRoot(document.getElementById('root')).render(
+createRoot(document.getElementById('root')!).render(
   <ConfigProvider
     theme={{
       algorithm: theme.darkAlgorithm,

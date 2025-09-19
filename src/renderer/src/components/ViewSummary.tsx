@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, memo } from 'react';
 import TableComponent from './Table';
 
 import { ShipmentDetail, RootObject } from '../types/shipmentDetail';
@@ -172,4 +172,4 @@ function ViewSummary({
   }
 }
 
-export default ViewSummary;
+export default memo(ViewSummary);

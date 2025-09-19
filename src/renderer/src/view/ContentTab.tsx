@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback, memo } from 'react';
 
 import EditorComponent from '../components/ViewEditor';
 import ViewSummary from '../components/ViewSummary';
@@ -85,17 +85,22 @@ function ContentTab({ content: initialContentString, tabKey }: Props) {
       });
   }, [currentXmlString, tabKey]);
 
-  // Callback for child components (Editor or Summary) to update content
-  const handleContentChange = (newContent: string) => {
-    if (newContent !== currentXmlString) {
-      setCurrentXmlString(newContent);
-      setModifiedTabState(tabKey);
-      console.log(
-        '[ContentTab] Content changed, tab marked as modified:',
-        tabKey,
-      );
-    }
-  };
+  const handleContentChange = useCallback(
+    (newContent: string) => {
+      setCurrentXmlString((current) => {
+        if (newContent !== current) {
+          setModifiedTabState(tabKey);
+          console.log(
+            '[ContentTab] Content changed, tab marked as modified:',
+            tabKey,
+          );
+          return newContent;
+        }
+        return current;
+      });
+    },
+    [setModifiedTabState, tabKey], // Las dependencias son estables.
+  );
 
   // Calculamos tableContentForDisplay aquí, en ContentTab, usando useMemo.
   // Solo se recalculará si parsedXmlObject cambia.
@@ -103,13 +108,9 @@ function ContentTab({ content: initialContentString, tabKey }: Props) {
     if (!parsedXmlObject) {
       return [];
     }
-    // Este log ayuda a confirmar cuándo se ejecuta realmente la extracción.
-    console.log(
-      '[ContentTab] Calculando tableContentForDisplay para la pestaña:',
-      tabKey,
-    );
+
     return extractTableDataFromParsedXML(parsedXmlObject);
-  }, [parsedXmlObject, tabKey]); // tabKey es dependencia si extractTableDataFromParsedXML lo usa, sino solo parsedXmlObject
+  }, [parsedXmlObject]);
 
   // console.log('[ContentTab]:', {
   //   editorView,
@@ -119,25 +120,41 @@ function ContentTab({ content: initialContentString, tabKey }: Props) {
   //   tableContentForDisplay,
   // });
 
+  const editorComponent = useMemo(
+    () => (
+      <EditorComponent
+        xmlStringContent={currentXmlString}
+        onContentChange={handleContentChange}
+      />
+    ),
+    [currentXmlString, handleContentChange],
+  );
+
+  const summaryComponent = useMemo(
+    () => (
+      <ViewSummary
+        parsedXmlObject={parsedXmlObject}
+        tableContentForDisplay={tableContentForDisplay}
+        isParsingXml={isParsingXml}
+        xmlParsingError={xmlParsingError}
+        onContentChange={handleContentChange}
+      />
+    ),
+    [
+      parsedXmlObject,
+      tableContentForDisplay,
+      isParsingXml,
+      xmlParsingError,
+      handleContentChange,
+    ],
+  );
+
   return (
     <>
-      {editorView === 'tree' && (
-        <EditorComponent
-          xmlStringContent={currentXmlString}
-          onContentChange={handleContentChange}
-        />
-      )}
-      {editorView === 'summary' && (
-        <ViewSummary
-          parsedXmlObject={parsedXmlObject}
-          tableContentForDisplay={tableContentForDisplay}
-          isParsingXml={isParsingXml}
-          xmlParsingError={xmlParsingError}
-          onContentChange={handleContentChange}
-        />
-      )}
+      {editorView === 'tree' && editorComponent}
+      {editorView === 'summary' && summaryComponent}
     </>
   );
 }
 
-export default ContentTab;
+export default memo(ContentTab);

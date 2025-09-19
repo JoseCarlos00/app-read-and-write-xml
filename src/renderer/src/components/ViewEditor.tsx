@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, memo } from 'react';
 import Editor from '@monaco-editor/react';
 
 const DEBOUNCE_DELAY = 500;
@@ -67,4 +67,4 @@ function EditorComponent({ xmlStringContent, onContentChange }: Props) {
   );
 }
 
-export default EditorComponent;
+export default memo(EditorComponent);

@@ -1,4 +1,4 @@
-import { useEffect, useState, Key } from 'react';
+import { useEffect, useState, Key, memo } from 'react';
 import { Popconfirm, Table, Button, Flex, type TableProps, Badge } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
 
@@ -196,4 +196,4 @@ const TableComponent = ({
   );
 };
 
-export default TableComponent;
+export default memo(TableComponent);
