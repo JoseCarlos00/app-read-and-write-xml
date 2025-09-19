@@ -32,11 +32,11 @@ type Shipment = {
   Details: ShipmentDetailContainer; // Compuesto
 };
 
-type CommentContainer = {
+export type CommentContainer = {
   Comment: CommentEntry[];
 };
 
-type CommentEntry = {
+export type CommentEntry = {
   CommentType: string;
   Text: string;
 };
@@ -92,4 +92,29 @@ export type SKUItem = {
   Item: string;
   Quantity: string;
   QuantityUm: string;
+};
+
+type CustomerSummary = {
+  CustomerName: string;
+  CustomerAddress: string;
+};
+
+type ShipToAddressSummary = {
+  ShipTo: string;
+  Name: string;
+  Address: string;
+};
+
+type OrderDetails = {
+  OrderDate: string;
+  OrderType: string;
+};
+
+export type TableDetailSummary = {
+  Customer: CustomerSummary;
+  ErpOrder: string;
+  ShipmentId: string;
+  ShipToAddress: ShipToAddressSummary;
+  OrderDetails: OrderDetails;
+  Comments: CommentEntry[] | null;
 };

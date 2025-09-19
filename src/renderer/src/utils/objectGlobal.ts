@@ -1,4 +1,9 @@
-import { ShipmentDetail, RootObject } from '../types/shipmentDetail';
+import {
+  ShipmentDetail,
+  RootObject,
+  TableDetailSummary,
+  CommentEntry,
+} from '../types/shipmentDetail';
 
 type ArrayContentShipmentDetail = Array<ShipmentDetail>;
 
@@ -12,7 +17,13 @@ type getParsedGlobalType = (
 };
 
 type getNewArrayObject = (parsedXmlObject: RootObject) => {
-  shipmentDetailArray?: ArrayContentShipmentDetail | object;
+  shipmentDetailArray?: ArrayContentShipmentDetail;
+  error?: string;
+  success: boolean;
+};
+
+type getNewSummaryDetailObject = (parsedXmlObject: RootObject) => {
+  shipmentSummaryDetail?: TableDetailSummary | null;
   error?: string;
   success: boolean;
 };
@@ -77,21 +88,23 @@ export const getArrayObjectShipmentDetail: getNewArrayObject = (
       );
     }
 
-    const detailsNodeSource =
+    type ShipmentDetailSource = {
+      ShipmentDetail: ShipmentDetail[] | ShipmentDetail | null;
+    };
+
+    const detailsNodeSource: ShipmentDetailSource =
       parsedXmlObject?.WMWROOT?.WMWDATA?.Shipments?.Shipment?.Details;
 
-    let currentShipmentDetailsSource: ArrayContentShipmentDetail | object = [];
+    let currentShipmentDetailsSource: ShipmentDetail[] = [];
 
     if (
       Array.isArray(detailsNodeSource.ShipmentDetail) &&
       detailsNodeSource.ShipmentDetail.length > 0
     ) {
       currentShipmentDetailsSource = detailsNodeSource.ShipmentDetail;
-    } else if (
-      typeof detailsNodeSource.ShipmentDetail === 'object' &&
-      detailsNodeSource.ShipmentDetail !== null
-    ) {
-      currentShipmentDetailsSource = [{ ...detailsNodeSource.ShipmentDetail }];
+    } else if (detailsNodeSource.ShipmentDetail !== null) {
+      const shipmentDetail = detailsNodeSource.ShipmentDetail as ShipmentDetail;
+      currentShipmentDetailsSource = [shipmentDetail];
     }
 
     return { shipmentDetailArray: currentShipmentDetailsSource, success: true };
@@ -101,5 +114,86 @@ export const getArrayObjectShipmentDetail: getNewArrayObject = (
       error,
     );
     return { error: 'Error en getArrayObjectShipmentDetail', success: false };
+  }
+};
+
+export const getArrayObjectShipmentSummary: getNewSummaryDetailObject = (
+  parsedXmlObject,
+) => {
+  console.log('getArrayObjectShipmentSummary', {
+    parsedXmlObject,
+    'WMWROOT?.WMWDATA[0]?.Shipments[0]':
+      parsedXmlObject?.WMWROOT?.WMWDATA?.Shipments?.Shipment,
+  });
+  try {
+    // Validación básica de la estructura de parsedXmlObject
+    if (!parsedXmlObject?.WMWROOT?.WMWDATA?.Shipments?.Shipment) {
+      throw new Error(
+        'Estructura de parsedXmlObject inválida en getArrayObjectShipmentDetail.',
+      );
+    }
+
+    type GetComments = (
+      comments: CommentEntry[] | CommentEntry,
+    ) => Partial<TableDetailSummary>['Comments'];
+
+    const getComments: GetComments = (comments) => {
+      if (comments && Array.isArray(comments) && comments.length > 0) {
+        return comments as TableDetailSummary['Comments'];
+      } else if (comments) {
+        return [comments] as TableDetailSummary['Comments'];
+      }
+
+      return null;
+    };
+
+    const shipmentSummaryDetail: TableDetailSummary = {
+      Customer: {
+        CustomerName:
+          parsedXmlObject?.WMWROOT?.WMWDATA?.Shipments.Shipment.Customer
+            .Customer,
+        CustomerAddress:
+          parsedXmlObject?.WMWROOT?.WMWDATA?.Shipments.Shipment.Customer
+            .CustomerAddress.Name,
+      },
+      ErpOrder: parsedXmlObject?.WMWROOT?.WMWDATA?.Shipments.Shipment.ErpOrder,
+      ShipmentId:
+        parsedXmlObject?.WMWROOT?.WMWDATA?.Shipments.Shipment.ShipmentId,
+      ShipToAddress: {
+        ShipTo:
+          parsedXmlObject?.WMWROOT?.WMWDATA?.Shipments.Shipment.Customer.ShipTo,
+        Name: parsedXmlObject?.WMWROOT?.WMWDATA?.Shipments.Shipment.Customer
+          .ShipToAddress.Name,
+        Address:
+          parsedXmlObject?.WMWROOT?.WMWDATA?.Shipments.Shipment.Customer
+            .ShipToAddress.Address1 ||
+          parsedXmlObject?.WMWROOT?.WMWDATA?.Shipments.Shipment.Customer
+            .ShipToAddress.Address2 ||
+          parsedXmlObject?.WMWROOT?.WMWDATA?.Shipments.Shipment.Customer
+            .ShipToAddress.Address3,
+      },
+      OrderDetails: {
+        OrderDate:
+          parsedXmlObject?.WMWROOT?.WMWDATA?.Shipments.Shipment.OrderDate,
+        OrderType:
+          parsedXmlObject?.WMWROOT?.WMWDATA?.Shipments.Shipment.OrderType,
+      },
+      Comments:
+        getComments(
+          parsedXmlObject?.WMWROOT?.WMWDATA?.Shipments.Shipment.Comments
+            .Comment,
+        ) ?? null,
+    };
+
+    return {
+      shipmentSummaryDetail,
+      success: true,
+    };
+  } catch (error) {
+    console.error(
+      'Error en getArrayObjectShipmentSummary al actualizar ShipmentSummaryDetail:',
+      error,
+    );
+    return { error: 'Error en getArrayObjectShipmentSummary', success: false };
   }
 };

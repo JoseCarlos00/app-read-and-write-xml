@@ -4,14 +4,26 @@ import EditorComponent from '../components/ViewEditor';
 import ViewSummary from '../components/ViewSummary';
 import { useTabManagerStore, useViewStore } from '../store/viewStore';
 
-import { RootObject } from '../types/shipmentDetail';
-import { extractTableDataFromParsedXML } from '../utils/xmlUtils';
+import type {
+  RootObject,
+  ShipmentDetail,
+  TableDetailSummary,
+} from '../types/shipmentDetail';
+import {
+  extractTableDataFromParsedXML,
+  extractTableDetailFromParsedXML,
+} from '../utils/xmlUtils';
 
 const { parseXMLPromise } = window.xml2jsAPI;
 
 interface Props {
   content: string;
   tabKey: string;
+}
+
+export interface TableContentForDisplay {
+  tableDetail: Array<ShipmentDetail> | null;
+  tableSummary: TableDetailSummary | null;
 }
 
 function ContentTab({ content: initialContentString, tabKey }: Props) {
@@ -104,21 +116,16 @@ function ContentTab({ content: initialContentString, tabKey }: Props) {
 
   // Calculamos tableContentForDisplay aquí, en ContentTab, usando useMemo.
   // Solo se recalculará si parsedXmlObject cambia.
-  const tableContentForDisplay = useMemo(() => {
+  const tableContentForDisplay: TableContentForDisplay | null = useMemo(() => {
     if (!parsedXmlObject) {
-      return [];
+      return null;
     }
 
-    return extractTableDataFromParsedXML(parsedXmlObject);
+    return {
+      tableDetail: extractTableDataFromParsedXML(parsedXmlObject),
+      tableSummary: extractTableDetailFromParsedXML(parsedXmlObject),
+    };
   }, [parsedXmlObject]);
-
-  // console.log('[ContentTab]:', {
-  //   editorView,
-  //   currentXmlString,
-  //   parsedXmlObject,
-  //   lastParsedXml: lastParsedXml.current,
-  //   tableContentForDisplay,
-  // });
 
   const editorComponent = useMemo(
     () => (

@@ -1,8 +1,10 @@
 import { useEffect, useRef, useCallback, memo } from 'react';
 import TableComponent from './Table';
+import TableSummary from './TableSummary';
 
-import { ShipmentDetail, RootObject } from '../types/shipmentDetail';
+import type { RootObject, ShipmentDetail } from '../types/shipmentDetail';
 import { updateParsedXMLWithTableData } from '../utils/objectGlobal';
+import { TableContentForDisplay } from '../view/ContentTab';
 
 const DEBOUNCE_DELAY = 500;
 const { buildXML } = window.xml2jsAPI;
@@ -11,7 +13,7 @@ let counter = 0;
 
 interface Props {
   parsedXmlObject: RootObject | null;
-  tableContentForDisplay: Array<ShipmentDetail>;
+  tableContentForDisplay: TableContentForDisplay | null;
   xmlParsingError: string | null;
   isParsingXml: boolean;
   onContentChange: (newContent: string) => void;
@@ -139,13 +141,6 @@ function ViewSummary({
     parsedXmlObject,
   });
 
-  // console.log(`[ViewSummary] Render para la pestaña ${tabKey}:`, {
-  //   parsedXmlObject,
-  //   isParsingXml,
-  //   xmlParsingError,
-  //   tableContentForDisplay,
-  // });
-
   if (isParsingXml) {
     console.log('isParsingXml');
 
@@ -161,10 +156,20 @@ function ViewSummary({
   if (parsedXmlObject) {
     return (
       <div
-        style={{ maxWidth: '700px', marginRight: 'auto', marginLeft: 'auto' }}
+        style={{
+          maxWidth: '700px',
+          marginRight: 'auto',
+          marginLeft: 'auto',
+          marginTop: '20px',
+        }}
       >
+        <TableSummary
+          tableContent={tableContentForDisplay?.tableSummary || null}
+          // onContentChange={handleTableContentChange}
+        />
+
         <TableComponent
-          tableContent={tableContentForDisplay || []}
+          tableContent={tableContentForDisplay?.tableDetail || []}
           onContentChange={handleTableContentChange}
         />
       </div>
