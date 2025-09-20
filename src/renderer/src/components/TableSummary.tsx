@@ -42,6 +42,7 @@ const TableSummary = ({ tableContent }: TableSummaryProps) => {
     tableContent,
   );
   const [showMore, setShowMore] = useState(false);
+  const [editingField, setEditingField] = useState<string | null>(null);
   const debounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -131,9 +132,17 @@ const TableSummary = ({ tableContent }: TableSummaryProps) => {
             content = isEditable ? (
               <Input
                 value={value as string}
+                onClick={(e) => e.currentTarget.select()}
+                onFocus={() => setEditingField(key)}
+                onBlur={() => setEditingField(null)}
                 onChange={(e) => handleInputChange(key, e.target.value)}
                 style={{ width: '100%' }}
-                variant="borderless"
+                variant={editingField === key ? 'outlined' : 'borderless'}
+                className={
+                  editingField === key
+                    ? 'editing input-table-summary'
+                    : 'input-table-summary'
+                }
               />
             ) : (
               <Text>{String(value)}</Text>
